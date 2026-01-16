@@ -1,0 +1,76 @@
+# English sources only. Hot news, no blogs, no exchange announcements.
+# HN is a hotness signal only and cannot be used as a final citation.
+
+sections:
+  tech:
+    primary_sources:
+      - name: BBC Technology
+        url: https://feeds.bbci.co.uk/news/technology/rss.xml
+        type: rss
+      - name: Ars Technica (index)
+        url: https://arstechnica.com/rss-feeds/
+        type: index
+      - name: WIRED (index)
+        url: https://www.wired.com/about/rss-feeds/
+        type: index
+      - name: The Register (index)
+        url: https://www.theregister.com/Design/page/feeds.html
+        type: index
+    hot_signal_sources:
+      - name: Hacker News
+        url: https://news.ycombinator.com/rss
+        type: rss
+
+  finance:
+    primary_sources:
+      - name: BBC Business
+        url: https://feeds.bbci.co.uk/news/business/rss.xml
+        type: rss
+      - name: CNBC (index)
+        url: https://www.cnbc.com/rss-feeds/
+        type: index
+      - name: MarketWatch Top Stories
+        url: https://feeds.marketwatch.com/marketwatch/topstories/
+        type: rss
+      - name: Federal Reserve (index)
+        url: https://www.federalreserve.gov/feeds/feeds.htm
+        type: index
+      - name: ECB (index)
+        url: https://www.ecb.europa.eu/home/html/rss.ga.html
+        type: index
+
+  geopolitics:
+    primary_sources:
+      - name: BBC World
+        url: https://feeds.bbci.co.uk/news/world/rss.xml
+        type: rss
+      - name: The Guardian World
+        url: https://www.theguardian.com/world/rss
+        type: rss
+      - name: Al Jazeera (all)
+        url: https://www.aljazeera.com/xml/rss/all.xml
+        type: rss
+      - name: UN News (entry)
+        url: https://news.un.org/en
+        type: index
+      - name: IAEA (index)
+        url: https://www.iaea.org/feeds
+        type: index
+
+  crypto:
+    primary_sources:
+      - name: CoinDesk
+        url: https://www.coindesk.com/arc/outboundfeeds/rss/
+        type: rss
+      - name: DL News
+        url: https://www.dlnews.com/rss/
+        type: rss
+      - name: Cointelegraph (index)
+        url: https://cointelegraph.com/rss-feeds
+        type: index
+      - name: SEC Press Releases
+        url: https://www.sec.gov/newsroom/press-releases
+        type: index
+      - name: CFTC (index)
+        url: https://www.cftc.gov/RSS/index.htm
+        type: index
