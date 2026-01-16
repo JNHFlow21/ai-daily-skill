@@ -6,6 +6,7 @@ import json
 import os
 import re
 import sys
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
@@ -89,22 +90,41 @@ class GeminiClient:
                 "maxOutputTokens": max_tokens,
             },
         }
-        response = requests.post(
-            url,
-            params=params,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(payload),
-            timeout=TIMEOUT_SECS,
-        )
-        response.raise_for_status()
-        data = response.json()
-        candidates = data.get("candidates", [])
-        if not candidates:
-            raise RuntimeError("Gemini returned no candidates")
-        parts = candidates[0].get("content", {}).get("parts", [])
-        if not parts:
-            raise RuntimeError("Gemini returned empty content")
-        return parts[0].get("text", "").strip()
+        last_error: Optional[Exception] = None
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    url,
+                    params=params,
+                    headers={"Content-Type": "application/json"},
+                    data=json.dumps(payload),
+                    timeout=TIMEOUT_SECS,
+                )
+                if response.status_code in (429, 500, 503):
+                    raise requests.HTTPError(
+                        f"Gemini status {response.status_code}", response=response
+                    )
+                response.raise_for_status()
+                data = response.json()
+                candidates = data.get("candidates", [])
+                if not candidates:
+                    raise RuntimeError("Gemini returned no candidates")
+                parts = candidates[0].get("content", {}).get("parts", [])
+                if not parts:
+                    raise RuntimeError("Gemini returned empty content")
+                return parts[0].get("text", "").strip()
+            except requests.HTTPError as exc:
+                last_error = exc
+                if getattr(exc.response, "status_code", None) in (429, 500, 503):
+                    time.sleep(2 ** attempt)
+                    continue
+                raise
+            except Exception as exc:
+                last_error = exc
+                time.sleep(2 ** attempt)
+        if last_error:
+            raise RuntimeError(f"Gemini failed after retries: {last_error}") from last_error
+        raise RuntimeError("Gemini failed without error")
 
 
 def load_env_file(path: str = ".env") -> None:
@@ -321,13 +341,17 @@ def hn_bonus_for_title(title: str, hot_titles: List[str]) -> float:
     return 0.0
 
 
+def fallback_explain(item: Item) -> Dict[str, str]:
+    return {
+        "what_happened": f"新闻要点：{item.title_en}",
+        "why_it_matters": "重要性：待补充",
+        "what_to_watch": "关注点：待补充",
+    }
+
+
 def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, str]:
     if client is None:
-        return {
-            "what_happened": f"新闻要点：{item.title_en}",
-            "why_it_matters": "重要性：待补充",
-            "what_to_watch": "关注点：待补充",
-        }
+        return fallback_explain(item)
     prompt = (
         "Summarize the following English news headline into Chinese with plain language. "
         "Return strict JSON with keys: what_happened, why_it_matters, what_to_watch. "
@@ -341,16 +365,16 @@ def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, st
     parsed = safe_json_from_text(raw)
     if parsed:
         return parsed
-    return {
-        "what_happened": f"新闻要点：{item.title_en}",
-        "why_it_matters": "重要性：待补充",
-        "what_to_watch": "关注点：待补充",
-    }
+    return fallback_explain(item)
+
+
+def fallback_highlights(reason: str) -> List[str]:
+    return [f"要点待生成（{reason}）"]
 
 
 def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, Any]]) -> List[str]:
     if client is None:
-        return ["要点待生成（LLM未启用）"]
+        return fallback_highlights("LLM未启用")
     lines = []
     for item in items:
         lines.append(f"[{item['section']}] {item['title_en']}")
@@ -363,7 +387,7 @@ def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, An
     parsed = safe_json_from_text(raw)
     if isinstance(parsed, list):
         return [str(x) for x in parsed][:5]
-    return ["要点待生成"]
+    return fallback_highlights("LLM输出异常")
 
 
 def safe_json_from_text(text: str) -> Optional[Any]:
@@ -501,7 +525,15 @@ def main() -> int:
         top_clusters = scored[:MAX_ITEMS_PER_SECTION]
         section_items = []
         for score, primary, cluster in top_clusters:
-            explain = generate_explain(client, primary)
+            if client is None:
+                explain = fallback_explain(primary)
+            else:
+                try:
+                    explain = generate_explain(client, primary)
+                except Exception as exc:
+                    errors.append(f"LLM explain failed: {section}:{primary.source}:{exc}")
+                    explain = fallback_explain(primary)
+                    client = None
             section_items.append({
                 "title_en": primary.title_en,
                 "source": primary.source,
@@ -522,7 +554,14 @@ def main() -> int:
             "selected": len(section_items),
         }
 
-    highlights_zh = generate_highlights(client, selected_for_highlights)
+    if client is None:
+        highlights_zh = fallback_highlights("LLM未启用或失败")
+    else:
+        try:
+            highlights_zh = generate_highlights(client, selected_for_highlights)
+        except Exception as exc:
+            errors.append(f"LLM highlights failed: {exc}")
+            highlights_zh = fallback_highlights("LLM失败")
     telegram_messages = build_telegram_messages(content_date_bj, highlights_zh, sections_output)
 
     output = {
