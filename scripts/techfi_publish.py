@@ -93,12 +93,13 @@ class BitableClient:
             "filter": {
                 "conjunction": "and",
                 "conditions": [
-                    {"field_name": "content_date_bj", "operator": "is", "value": content_date_bj}
+                    {"field_name": "content_date_bj", "operator": "is", "value": [content_date_bj]}
                 ],
             }
         }
         response = requests.post(url, json=payload, headers=self._headers(), timeout=TIMEOUT_SECS)
-        response.raise_for_status()
+        if not response.ok:
+            raise RuntimeError(f"Bitable search failed: {response.status_code} {response.text}")
         data = response.json()
         if data.get("code") != 0:
             raise RuntimeError(data)

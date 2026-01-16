@@ -28,12 +28,12 @@ INDEX_FEED_MAP = {
     "https://www.theregister.com/Design/page/feeds.html": ["https://www.theregister.com/headlines.atom"],
     "https://www.cnbc.com/rss-feeds/": ["https://www.cnbc.com/id/100003114/device/rss/rss.html"],
     "https://www.federalreserve.gov/feeds/feeds.htm": ["https://www.federalreserve.gov/feeds/press_all.xml"],
-    "https://www.ecb.europa.eu/home/html/rss.ga.html": ["https://www.ecb.europa.eu/press/pr/rss/html/index.en.html"],
+    "https://www.ecb.europa.eu/home/html/rss.ga.html": ["https://www.ecb.europa.eu/rss/press.html"],
     "https://news.un.org/en": ["https://news.un.org/feed/subscribe/en/news/all/rss.xml"],
-    "https://www.iaea.org/feeds": ["https://www.iaea.org/feeds/press-releases/"],
+    "https://www.iaea.org/feeds": ["https://www.iaea.org/feeds/topnews"],
     "https://cointelegraph.com/rss-feeds": ["https://cointelegraph.com/rss"],
     "https://www.sec.gov/newsroom/press-releases": ["https://www.sec.gov/news/pressreleases.rss"],
-    "https://www.cftc.gov/RSS/index.htm": ["https://www.cftc.gov/RSS/PressReleases"],
+    "https://www.cftc.gov/RSS/index.htm": ["https://www.cftc.gov/RSS/RSSGP/rssgp.xml"],
 }
 
 KEYWORDS_BY_SECTION = {
@@ -81,18 +81,29 @@ class GeminiClient:
         self.model = model
         self.api_base = api_base or "https://generativelanguage.googleapis.com/v1beta"
 
-    def generate_text(self, prompt: str, max_tokens: int = 512) -> str:
+    def generate_text(
+        self,
+        prompt: str,
+        max_tokens: int = 512,
+        response_mime_type: Optional[str] = None,
+        response_schema: Optional[Dict[str, Any]] = None,
+    ) -> str:
         url = f"{self.api_base}/models/{self.model}:generateContent"
         params = {"key": self.api_key}
+        generation_config: Dict[str, Any] = {
+            "temperature": 0.2,
+            "maxOutputTokens": max_tokens,
+        }
+        if response_mime_type:
+            generation_config["responseMimeType"] = response_mime_type
+        if response_schema:
+            generation_config["responseSchema"] = response_schema
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.2,
-                "maxOutputTokens": max_tokens,
-            },
+            "generationConfig": generation_config,
         }
         last_error: Optional[Exception] = None
-        for attempt in range(3):
+        for attempt in range(5):
             try:
                 response = requests.post(
                     url,
@@ -117,12 +128,18 @@ class GeminiClient:
             except requests.HTTPError as exc:
                 last_error = exc
                 if getattr(exc.response, "status_code", None) in (429, 500, 503):
-                    time.sleep(2 ** attempt)
+                    retry_after = None
+                    if exc.response is not None:
+                        retry_after = exc.response.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        time.sleep(int(retry_after))
+                    else:
+                        time.sleep(min(2 ** attempt, 10))
                     continue
                 raise
             except Exception as exc:
                 last_error = exc
-                time.sleep(2 ** attempt)
+                time.sleep(min(2 ** attempt, 10))
         if last_error:
             raise RuntimeError(f"Gemini failed after retries: {last_error}") from last_error
         raise RuntimeError("Gemini failed without error")
@@ -386,8 +403,27 @@ def generate_explain_batch(client: GeminiClient, items: List[Item]) -> List[Dict
         "Each value must be one concise Chinese sentence, <= 30 Chinese characters, no hype, no emojis. "
         "Input:\n" + "\n".join(lines)
     )
-    raw = client.generate_text(prompt, max_tokens=512)
+    schema = {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "what_happened": {"type": "string"},
+                "why_it_matters": {"type": "string"},
+                "what_to_watch": {"type": "string"},
+            },
+            "required": ["what_happened", "why_it_matters", "what_to_watch"],
+        },
+    }
+    raw = client.generate_text(
+        prompt,
+        max_tokens=512,
+        response_mime_type="application/json",
+        response_schema=schema,
+    )
     parsed = safe_json_from_text(raw)
+    if isinstance(parsed, dict) and isinstance(parsed.get("items"), list):
+        parsed = parsed["items"]
     if not isinstance(parsed, list):
         raise RuntimeError("Gemini batch output is not a list")
     return parsed
@@ -404,8 +440,16 @@ def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, An
         "Return strict JSON array of strings. Each item <= 30 Chinese characters. "
         "Input headlines:\n" + "\n".join(lines)
     )
-    raw = client.generate_text(prompt, max_tokens=256)
+    schema = {"type": "array", "items": {"type": "string"}}
+    raw = client.generate_text(
+        prompt,
+        max_tokens=256,
+        response_mime_type="application/json",
+        response_schema=schema,
+    )
     parsed = safe_json_from_text(raw)
+    if isinstance(parsed, dict) and isinstance(parsed.get("items"), list):
+        parsed = parsed["items"]
     if isinstance(parsed, list):
         return [str(x) for x in parsed][:5]
     return fallback_highlights("LLM输出异常")
