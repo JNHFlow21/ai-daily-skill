@@ -1,0 +1,44 @@
+name: techfi-daily
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: gemini-3-flash-preview
+      GEMINI_API_BASE: ${{ secrets.GEMINI_API_BASE }}
+      TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+      LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
+      LARK_BITABLE_APP_TOKEN: ${{ secrets.LARK_BITABLE_APP_TOKEN }}
+      LARK_BITABLE_TABLE_ID: ${{ secrets.LARK_BITABLE_TABLE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate
+        run: python scripts/techfi_generate.py
+
+      - name: Publish
+        run: python scripts/techfi_publish.py
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: techfi-daily-json
+          path: artifacts/techfi-daily/latest.json
