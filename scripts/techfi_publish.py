@@ -93,7 +93,7 @@ class BitableClient:
             "filter": {
                 "conjunction": "and",
                 "conditions": [
-                    {"field_name": "content_date_bj", "operator": "is", "value": [content_date_bj]}
+                    {"field_name": "content_date_bj", "operator": "is", "value": content_date_bj}
                 ],
             }
         }

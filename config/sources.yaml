@@ -39,7 +39,7 @@ sections:
         url: https://www.ecb.europa.eu/home/html/rss.ga.html
         type: index
 
-  geopolitics:
+  geo:
     primary_sources:
       - name: BBC World
         url: https://feeds.bbci.co.uk/news/world/rss.xml

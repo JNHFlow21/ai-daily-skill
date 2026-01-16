@@ -20,6 +20,7 @@ from zoneinfo import ZoneInfo
 USER_AGENT = "TechFiDailyBot/1.0 (+https://github.com/JNHFlow21/ai-daily-skill)"
 TIMEOUT_SECS = 20
 MAX_ITEMS_PER_SECTION = 5
+SECTION_ALIASES = {"geopolitics": "geo"}
 
 INDEX_FEED_MAP = {
     "https://arstechnica.com/rss-feeds/": ["https://feeds.arstechnica.com/arstechnica/index"],
@@ -29,10 +30,10 @@ INDEX_FEED_MAP = {
     "https://www.federalreserve.gov/feeds/feeds.htm": ["https://www.federalreserve.gov/feeds/press_all.xml"],
     "https://www.ecb.europa.eu/home/html/rss.ga.html": ["https://www.ecb.europa.eu/press/pr/rss/html/index.en.html"],
     "https://news.un.org/en": ["https://news.un.org/feed/subscribe/en/news/all/rss.xml"],
-    "https://www.iaea.org/feeds": ["https://www.iaea.org/feeds/press-releases"],
+    "https://www.iaea.org/feeds": ["https://www.iaea.org/feeds/press-releases/"],
     "https://cointelegraph.com/rss-feeds": ["https://cointelegraph.com/rss"],
     "https://www.sec.gov/newsroom/press-releases": ["https://www.sec.gov/news/pressreleases.rss"],
-    "https://www.cftc.gov/RSS/index.htm": ["https://www.cftc.gov/RSS/PressReleases.xml"],
+    "https://www.cftc.gov/RSS/index.htm": ["https://www.cftc.gov/RSS/PressReleases"],
 }
 
 KEYWORDS_BY_SECTION = {
@@ -372,6 +373,26 @@ def fallback_highlights(reason: str) -> List[str]:
     return [f"要点待生成（{reason}）"]
 
 
+def generate_explain_batch(client: GeminiClient, items: List[Item]) -> List[Dict[str, str]]:
+    lines = []
+    for idx, item in enumerate(items, start=1):
+        line = f"{idx}. {item.title_en} (Source: {item.source})"
+        if item.summary_en:
+            line += f" | Summary: {item.summary_en}"
+        lines.append(line)
+    prompt = (
+        "You are given English news headlines. Return a JSON array with the same length and order. "
+        "Each element must be an object with keys: what_happened, why_it_matters, what_to_watch. "
+        "Each value must be one concise Chinese sentence, <= 30 Chinese characters, no hype, no emojis. "
+        "Input:\n" + "\n".join(lines)
+    )
+    raw = client.generate_text(prompt, max_tokens=512)
+    parsed = safe_json_from_text(raw)
+    if not isinstance(parsed, list):
+        raise RuntimeError("Gemini batch output is not a list")
+    return parsed
+
+
 def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, Any]]) -> List[str]:
     if client is None:
         return fallback_highlights("LLM未启用")
@@ -468,26 +489,27 @@ def main() -> int:
     sources_used: List[Dict[str, Any]] = []
 
     for section, section_cfg in sections_config.items():
+        canonical_section = SECTION_ALIASES.get(section, section)
         for source in section_cfg.get("primary_sources", []):
             feed_urls = resolve_feed_urls(source, errors)
             for feed_url in feed_urls:
                 try:
                     feed = fetch_feed(feed_url)
-                    items = extract_items_from_feed(section, source["name"], feed, False)
-                    all_items[section].extend(items)
-                    sources_used.append({"section": section, "source": source["name"], "url": feed_url, "count": len(items)})
+                    items = extract_items_from_feed(canonical_section, source["name"], feed, False)
+                    all_items[canonical_section].extend(items)
+                    sources_used.append({"section": canonical_section, "source": source["name"], "url": feed_url, "count": len(items)})
                 except Exception as exc:
-                    errors.append(f"{section}:{source['name']}::{feed_url}::{exc}")
+                    errors.append(f"{canonical_section}:{source['name']}::{feed_url}::{exc}")
         for source in section_cfg.get("hot_signal_sources", []):
             feed_urls = resolve_feed_urls(source, errors)
             for feed_url in feed_urls:
                 try:
                     feed = fetch_feed(feed_url)
-                    items = extract_items_from_feed(section, source["name"], feed, True)
-                    all_items[section].extend(items)
-                    sources_used.append({"section": section, "source": source["name"], "url": feed_url, "count": len(items), "hot_signal": True})
+                    items = extract_items_from_feed(canonical_section, source["name"], feed, True)
+                    all_items[canonical_section].extend(items)
+                    sources_used.append({"section": canonical_section, "source": source["name"], "url": feed_url, "count": len(items), "hot_signal": True})
                 except Exception as exc:
-                    errors.append(f"{section}:{source['name']}::{feed_url}::{exc}")
+                    errors.append(f"{canonical_section}:{source['name']}::{feed_url}::{exc}")
 
     client = None
     if not args.no_llm:
@@ -523,17 +545,18 @@ def main() -> int:
 
         scored.sort(key=lambda x: x[0], reverse=True)
         top_clusters = scored[:MAX_ITEMS_PER_SECTION]
-        section_items = []
-        for score, primary, cluster in top_clusters:
-            if client is None:
-                explain = fallback_explain(primary)
-            else:
-                try:
-                    explain = generate_explain(client, primary)
-                except Exception as exc:
-                    errors.append(f"LLM explain failed: {section}:{primary.source}:{exc}")
-                    explain = fallback_explain(primary)
-                    client = None
+        section_items: List[Dict[str, Any]] = []
+        primary_items = [primary for _, primary, _ in top_clusters]
+        explains: List[Dict[str, str]] = []
+        if client is not None and primary_items:
+            try:
+                explains = generate_explain_batch(client, primary_items)
+            except Exception as exc:
+                errors.append(f"LLM batch failed: {section}:{exc}")
+                explains = []
+        if len(explains) != len(primary_items):
+            explains = [fallback_explain(item) for item in primary_items]
+        for primary, explain in zip(primary_items, explains):
             section_items.append({
                 "title_en": primary.title_en,
                 "source": primary.source,
