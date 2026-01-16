@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import html
 import json
 import os
 import sys
@@ -51,6 +52,45 @@ class TelegramClient:
         }
         response = requests.post(
             f"{self.base_url}/editMessageText",
+            json=payload,
+            timeout=TIMEOUT_SECS,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if not data.get("ok"):
+            raise RuntimeError(data)
+
+    def send_photo(self, photo_url: str, caption: Optional[str] = None) -> int:
+        payload: Dict[str, Any] = {
+            "chat_id": self.chat_id,
+            "photo": photo_url,
+        }
+        if caption:
+            payload["caption"] = caption
+            payload["parse_mode"] = "HTML"
+        response = requests.post(
+            f"{self.base_url}/sendPhoto",
+            json=payload,
+            timeout=TIMEOUT_SECS,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if not data.get("ok"):
+            raise RuntimeError(data)
+        return data["result"]["message_id"]
+
+    def edit_photo(self, message_id: int, photo_url: str, caption: Optional[str] = None) -> None:
+        media: Dict[str, Any] = {"type": "photo", "media": photo_url}
+        if caption:
+            media["caption"] = caption
+            media["parse_mode"] = "HTML"
+        payload = {
+            "chat_id": self.chat_id,
+            "message_id": message_id,
+            "media": media,
+        }
+        response = requests.post(
+            f"{self.base_url}/editMessageMedia",
             json=payload,
             timeout=TIMEOUT_SECS,
         )
@@ -167,6 +207,7 @@ def render_section_text(items: List[Dict[str, Any]]) -> str:
         line = (
             f"{idx}. {explain.get('what_happened', '')} "
             f"| {explain.get('why_it_matters', '')} "
+            f"| {explain.get('viewpoint', '')} "
             f"| {explain.get('what_to_watch', '')}"
         )
         lines.append(line.strip())
@@ -190,6 +231,21 @@ def parse_tg_message_ids(value: Optional[str]) -> Dict[str, int]:
         return {k: int(v) for k, v in parsed.items()}
     except Exception:
         return {}
+
+
+def render_item_html(section_title: str, content_date_bj: str, idx: int, item: Dict[str, Any]) -> str:
+    explain = item.get("explain_zh", {})
+    url = html.escape(item.get("url", ""))
+    source = html.escape(item.get("source", ""))
+    lines = [
+        f"<b>{section_title}</b> · {content_date_bj}",
+        f"{idx}) {html.escape(explain.get('what_happened', ''))}",
+        f"重要性：{html.escape(explain.get('why_it_matters', ''))}",
+        f"点评：{html.escape(explain.get('viewpoint', ''))}",
+        f"关注：{html.escape(explain.get('what_to_watch', ''))}",
+        f"来源：<a href=\"{url}\">{source}</a>",
+    ]
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -261,22 +317,53 @@ def main() -> int:
 
             messages = artifact.get("telegram", {}).get("messages", [])
             message_map = {m.get("key"): m for m in messages if m.get("key")}
-            for key in ["main", "tech", "finance", "geo", "crypto"]:
-                message = message_map.get(key)
-                if not message:
-                    continue
-                text_html = limit_message(message.get("text_html", ""))
-                if not text_html:
-                    continue
-                if key in existing_ids:
-                    try:
-                        telegram_client.edit_message(existing_ids[key], text_html)
-                        tg_message_ids[key] = existing_ids[key]
-                        continue
-                    except Exception:
-                        pass
-                new_id = telegram_client.send_message(text_html)
-                tg_message_ids[key] = new_id
+
+            main_message = message_map.get("main")
+            if main_message:
+                text_html = limit_message(main_message.get("text_html", ""))
+                if text_html:
+                    if "main" in existing_ids:
+                        try:
+                            telegram_client.edit_message(existing_ids["main"], text_html)
+                            tg_message_ids["main"] = existing_ids["main"]
+                        except Exception:
+                            tg_message_ids["main"] = telegram_client.send_message(text_html)
+                    else:
+                        tg_message_ids["main"] = telegram_client.send_message(text_html)
+
+            section_titles = {
+                "tech": "科技",
+                "finance": "金融",
+                "geo": "地缘政治",
+                "crypto": "加密",
+            }
+            for section in ["tech", "finance", "geo", "crypto"]:
+                items = sections.get(section, {}).get("items", [])
+                for idx, item in enumerate(items, start=1):
+                    key_text = f"{section}-{idx}"
+                    text_html = limit_message(
+                        render_item_html(section_titles[section], content_date_bj, idx, item)
+                    )
+                    if key_text in existing_ids:
+                        try:
+                            telegram_client.edit_message(existing_ids[key_text], text_html)
+                            tg_message_ids[key_text] = existing_ids[key_text]
+                        except Exception:
+                            tg_message_ids[key_text] = telegram_client.send_message(text_html)
+                    else:
+                        tg_message_ids[key_text] = telegram_client.send_message(text_html)
+
+                    image_url = item.get("image_url")
+                    if image_url and str(image_url).startswith(("http://", "https://")):
+                        key_img = f"{section}-{idx}-img"
+                        if key_img in existing_ids:
+                            try:
+                                telegram_client.edit_photo(existing_ids[key_img], image_url)
+                                tg_message_ids[key_img] = existing_ids[key_img]
+                            except Exception:
+                                tg_message_ids[key_img] = telegram_client.send_photo(image_url)
+                        else:
+                            tg_message_ids[key_img] = telegram_client.send_photo(image_url)
 
             telegram_ok = True
         except Exception as exc:

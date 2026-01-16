@@ -9,7 +9,7 @@ import sys
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+from urllib.parse import urljoin, urlparse, urlunparse, parse_qsl, urlencode
 
 import feedparser
 import requests
@@ -73,6 +73,7 @@ class Item:
     published_at: Optional[str]
     summary_en: Optional[str]
     is_hot_signal: bool = False
+    image_url: Optional[str] = None
 
 
 class GeminiClient:
@@ -359,6 +360,7 @@ def extract_items_from_feed(section: str, source_name: str, feed: feedparser.Fee
         url = entry.get("link", "").strip()
         if not title or not url:
             continue
+        image_url = extract_image_from_entry(entry)
         published_dt = parse_datetime(entry.get("published"), entry.get("published_parsed"))
         if not published_dt:
             published_dt = parse_datetime(entry.get("updated"), entry.get("updated_parsed"))
@@ -373,9 +375,65 @@ def extract_items_from_feed(section: str, source_name: str, feed: feedparser.Fee
                 published_at=published_at,
                 summary_en=summary,
                 is_hot_signal=is_hot_signal,
+                image_url=image_url,
             )
         )
     return items
+
+
+def extract_image_from_entry(entry: Any) -> Optional[str]:
+    candidates: List[str] = []
+    for media in entry.get("media_content", []) or []:
+        if isinstance(media, dict) and media.get("url"):
+            candidates.append(media["url"])
+    for media in entry.get("media_thumbnail", []) or []:
+        if isinstance(media, dict) and media.get("url"):
+            candidates.append(media["url"])
+    image = entry.get("image")
+    if isinstance(image, dict) and image.get("href"):
+        candidates.append(image["href"])
+    for link in entry.get("links", []) or []:
+        if not isinstance(link, dict):
+            continue
+        if link.get("rel") == "enclosure" and str(link.get("type", "")).startswith("image/"):
+            if link.get("href"):
+                candidates.append(link["href"])
+    for url in candidates:
+        if url and url.startswith(("http://", "https://")):
+            return url
+    return None
+
+
+def fetch_og_image(url: str) -> Optional[str]:
+    if not url:
+        return None
+    headers = {"User-Agent": USER_AGENT}
+    try:
+        response = requests.get(url, headers=headers, timeout=TIMEOUT_SECS)
+        response.raise_for_status()
+    except Exception:
+        return None
+    text = response.text
+    patterns = [
+        r'<meta[^>]+property=["\']og:image["\'][^>]*content=["\']([^"\']+)["\']',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]*property=["\']og:image["\']',
+        r'<meta[^>]+name=["\']twitter:image["\'][^>]*content=["\']([^"\']+)["\']',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]*name=["\']twitter:image["\']',
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            image_url = match.group(1).strip()
+            if image_url.startswith(("http://", "https://")):
+                return image_url
+            return urljoin(url, image_url)
+    return None
+
+
+def resolve_image_url(item: Item) -> Optional[str]:
+    if item.image_url:
+        return item.image_url
+    return fetch_og_image(item.url)
 
 
 def filter_by_date(items: List[Item], content_date_bj: str) -> List[Item]:
@@ -434,6 +492,7 @@ def fallback_explain(item: Item) -> Dict[str, str]:
     return {
         "what_happened": f"新闻要点：{item.title_en}",
         "why_it_matters": "重要性：待补充",
+        "viewpoint": "点评：待补充",
         "what_to_watch": "关注点：待补充",
     }
 
@@ -443,8 +502,9 @@ def generate_explain(client: Optional[LLMClient], item: Item) -> Dict[str, str]:
         return fallback_explain(item)
     prompt = (
         "Summarize the following English news headline into Chinese with plain language. "
-        "Return strict JSON with keys: what_happened, why_it_matters, what_to_watch. "
-        "Each value must be one sentence, no hype, no emojis, <= 30 Chinese characters. "
+        "Return strict JSON with keys: what_happened, why_it_matters, viewpoint, what_to_watch. "
+        "Each value must be 1-2 sentences, <= 60 Chinese characters, no hype, no emojis. "
+        "Viewpoint should be a brief analyst-style comment based only on the headline and source. "
         f"Headline: {item.title_en}\n"
         f"Source: {item.source}\n"
     )
@@ -459,9 +519,10 @@ def generate_explain(client: Optional[LLMClient], item: Item) -> Dict[str, str]:
             "properties": {
                 "what_happened": {"type": "string"},
                 "why_it_matters": {"type": "string"},
+                "viewpoint": {"type": "string"},
                 "what_to_watch": {"type": "string"},
             },
-            "required": ["what_happened", "why_it_matters", "what_to_watch"],
+            "required": ["what_happened", "why_it_matters", "viewpoint", "what_to_watch"],
         },
     )
     parsed = safe_json_from_text(raw)
@@ -486,15 +547,17 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
         prompt = (
             "You are given English news headlines. Return a JSON object with key items (array) "
             "with the same length and order. Each element must be an object with keys: "
-            "what_happened, why_it_matters, what_to_watch. Each value must be one concise Chinese "
-            "sentence, <= 30 Chinese characters, no hype, no emojis. "
+            "what_happened, why_it_matters, viewpoint, what_to_watch. Each value must be 1-2 "
+            "sentences, <= 60 Chinese characters, no hype, no emojis. "
+            "Viewpoint should be a brief analyst-style comment based only on the headline and source. "
             "Input:\n" + "\n".join(lines)
         )
     else:
         prompt = (
             "You are given English news headlines. Return a JSON array with the same length and order. "
-            "Each element must be an object with keys: what_happened, why_it_matters, what_to_watch. "
-            "Each value must be one concise Chinese sentence, <= 30 Chinese characters, no hype, no emojis. "
+            "Each element must be an object with keys: what_happened, why_it_matters, viewpoint, what_to_watch. "
+            "Each value must be 1-2 sentences, <= 60 Chinese characters, no hype, no emojis. "
+            "Viewpoint should be a brief analyst-style comment based only on the headline and source. "
             "Input:\n" + "\n".join(lines)
         )
     schema = {
@@ -504,9 +567,10 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
             "properties": {
                 "what_happened": {"type": "string"},
                 "why_it_matters": {"type": "string"},
+                "viewpoint": {"type": "string"},
                 "what_to_watch": {"type": "string"},
             },
-            "required": ["what_happened", "why_it_matters", "what_to_watch"],
+            "required": ["what_happened", "why_it_matters", "viewpoint", "what_to_watch"],
         },
     }
     raw = client.generate_text(
@@ -610,6 +674,7 @@ def build_telegram_messages(
             lines.append("")
             lines.append(f"{idx}) {html.escape(explain['what_happened'])}")
             lines.append(f"重要性：{html.escape(explain['why_it_matters'])}")
+            lines.append(f"点评：{html.escape(explain.get('viewpoint', ''))}")
             lines.append(f"关注：{html.escape(explain['what_to_watch'])}")
             lines.append(f"来源：<a href=\"{html.escape(item['url'])}\">{html.escape(item['source'])}</a>")
         messages.append({"key": key, "text_html": "\n".join(lines)})
@@ -664,7 +729,7 @@ def main() -> int:
     if not args.no_llm:
         deepseek_key = os.getenv("DEEPSEEK_API_KEY")
         if deepseek_key:
-            model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+            model = os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner")
             api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
             client = DeepSeekClient(api_key=deepseek_key, model=model, api_base=api_base)
         else:
@@ -712,12 +777,14 @@ def main() -> int:
         if len(explains) != len(primary_items):
             explains = [fallback_explain(item) for item in primary_items]
         for primary, explain in zip(primary_items, explains):
+            image_url = resolve_image_url(primary)
             section_items.append({
                 "title_en": primary.title_en,
                 "source": primary.source,
                 "url": primary.url,
                 "published_at": primary.published_at,
                 "explain_zh": explain,
+                "image_url": image_url,
             })
             selected_for_highlights.append({
                 "section": section,
