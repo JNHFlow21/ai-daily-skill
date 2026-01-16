@@ -8,7 +8,7 @@ import re
 import sys
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 
 import feedparser
@@ -143,6 +143,77 @@ class GeminiClient:
         if last_error:
             raise RuntimeError(f"Gemini failed after retries: {last_error}") from last_error
         raise RuntimeError("Gemini failed without error")
+
+
+class DeepSeekClient:
+    def __init__(self, api_key: str, model: str, api_base: Optional[str] = None) -> None:
+        self.api_key = api_key
+        self.model = model
+        self.api_base = api_base or "https://api.deepseek.com"
+
+    def generate_text(
+        self,
+        prompt: str,
+        max_tokens: int = 512,
+        response_mime_type: Optional[str] = None,
+        response_schema: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        url = f"{self.api_base}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        payload: Dict[str, Any] = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.2,
+            "max_tokens": max_tokens,
+        }
+        if response_mime_type == "application/json":
+            payload["response_format"] = {"type": "json_object"}
+        last_error: Optional[Exception] = None
+        for attempt in range(5):
+            try:
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    data=json.dumps(payload),
+                    timeout=TIMEOUT_SECS,
+                )
+                if response.status_code in (429, 500, 503):
+                    raise requests.HTTPError(
+                        f"DeepSeek status {response.status_code}", response=response
+                    )
+                response.raise_for_status()
+                data = response.json()
+                choices = data.get("choices", [])
+                if not choices:
+                    raise RuntimeError("DeepSeek returned no choices")
+                content = choices[0].get("message", {}).get("content", "")
+                if not content:
+                    raise RuntimeError("DeepSeek returned empty content")
+                return str(content).strip()
+            except requests.HTTPError as exc:
+                last_error = exc
+                if getattr(exc.response, "status_code", None) in (429, 500, 503):
+                    retry_after = None
+                    if exc.response is not None:
+                        retry_after = exc.response.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        time.sleep(int(retry_after))
+                    else:
+                        time.sleep(min(2 ** attempt, 10))
+                    continue
+                raise
+            except Exception as exc:
+                last_error = exc
+                time.sleep(min(2 ** attempt, 10))
+        if last_error:
+            raise RuntimeError(f"DeepSeek failed after retries: {last_error}") from last_error
+        raise RuntimeError("DeepSeek failed without error")
+
+
+LLMClient = Union[GeminiClient, DeepSeekClient]
 
 
 def load_env_file(path: str = ".env") -> None:
@@ -367,7 +438,7 @@ def fallback_explain(item: Item) -> Dict[str, str]:
     }
 
 
-def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, str]:
+def generate_explain(client: Optional[LLMClient], item: Item) -> Dict[str, str]:
     if client is None:
         return fallback_explain(item)
     prompt = (
@@ -379,7 +450,20 @@ def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, st
     )
     if item.summary_en:
         prompt += f"Summary: {item.summary_en}\n"
-    raw = client.generate_text(prompt, max_tokens=256)
+    raw = client.generate_text(
+        prompt,
+        max_tokens=256,
+        response_mime_type="application/json",
+        response_schema={
+            "type": "object",
+            "properties": {
+                "what_happened": {"type": "string"},
+                "why_it_matters": {"type": "string"},
+                "what_to_watch": {"type": "string"},
+            },
+            "required": ["what_happened", "why_it_matters", "what_to_watch"],
+        },
+    )
     parsed = safe_json_from_text(raw)
     if parsed:
         return parsed
@@ -390,19 +474,29 @@ def fallback_highlights(reason: str) -> List[str]:
     return [f"要点待生成（{reason}）"]
 
 
-def generate_explain_batch(client: GeminiClient, items: List[Item]) -> List[Dict[str, str]]:
+def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[str, str]]:
     lines = []
     for idx, item in enumerate(items, start=1):
         line = f"{idx}. {item.title_en} (Source: {item.source})"
         if item.summary_en:
             line += f" | Summary: {item.summary_en}"
         lines.append(line)
-    prompt = (
-        "You are given English news headlines. Return a JSON array with the same length and order. "
-        "Each element must be an object with keys: what_happened, why_it_matters, what_to_watch. "
-        "Each value must be one concise Chinese sentence, <= 30 Chinese characters, no hype, no emojis. "
-        "Input:\n" + "\n".join(lines)
-    )
+    is_deepseek = isinstance(client, DeepSeekClient)
+    if is_deepseek:
+        prompt = (
+            "You are given English news headlines. Return a JSON object with key items (array) "
+            "with the same length and order. Each element must be an object with keys: "
+            "what_happened, why_it_matters, what_to_watch. Each value must be one concise Chinese "
+            "sentence, <= 30 Chinese characters, no hype, no emojis. "
+            "Input:\n" + "\n".join(lines)
+        )
+    else:
+        prompt = (
+            "You are given English news headlines. Return a JSON array with the same length and order. "
+            "Each element must be an object with keys: what_happened, why_it_matters, what_to_watch. "
+            "Each value must be one concise Chinese sentence, <= 30 Chinese characters, no hype, no emojis. "
+            "Input:\n" + "\n".join(lines)
+        )
     schema = {
         "type": "array",
         "items": {
@@ -429,17 +523,26 @@ def generate_explain_batch(client: GeminiClient, items: List[Item]) -> List[Dict
     return parsed
 
 
-def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, Any]]) -> List[str]:
+def generate_highlights(client: Optional[LLMClient], items: List[Dict[str, Any]]) -> List[str]:
     if client is None:
         return fallback_highlights("LLM未启用")
     lines = []
     for item in items:
         lines.append(f"[{item['section']}] {item['title_en']}")
-    prompt = (
-        "Create 3-5 concise Chinese highlights for a daily news brief. "
-        "Return strict JSON array of strings. Each item <= 30 Chinese characters. "
-        "Input headlines:\n" + "\n".join(lines)
-    )
+    is_deepseek = isinstance(client, DeepSeekClient)
+    if is_deepseek:
+        prompt = (
+            "Create 3-5 concise Chinese highlights for a daily news brief. "
+            "Return a JSON object with key highlights (array of strings). "
+            "Each item <= 30 Chinese characters. "
+            "Input headlines:\n" + "\n".join(lines)
+        )
+    else:
+        prompt = (
+            "Create 3-5 concise Chinese highlights for a daily news brief. "
+            "Return strict JSON array of strings. Each item <= 30 Chinese characters. "
+            "Input headlines:\n" + "\n".join(lines)
+        )
     schema = {"type": "array", "items": {"type": "string"}}
     raw = client.generate_text(
         prompt,
@@ -450,6 +553,8 @@ def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, An
     parsed = safe_json_from_text(raw)
     if isinstance(parsed, dict) and isinstance(parsed.get("items"), list):
         parsed = parsed["items"]
+    if isinstance(parsed, dict) and isinstance(parsed.get("highlights"), list):
+        parsed = parsed["highlights"]
     if isinstance(parsed, list):
         return [str(x) for x in parsed][:5]
     return fallback_highlights("LLM输出异常")
@@ -555,15 +660,21 @@ def main() -> int:
                 except Exception as exc:
                     errors.append(f"{canonical_section}:{source['name']}::{feed_url}::{exc}")
 
-    client = None
+    client: Optional[LLMClient] = None
     if not args.no_llm:
-        api_key = os.getenv("GEMINI_API_KEY")
-        model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
-        api_base = os.getenv("GEMINI_API_BASE")
-        if not api_key:
-            errors.append("GEMINI_API_KEY is missing; falling back to no-llm mode")
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        if deepseek_key:
+            model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+            api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
+            client = DeepSeekClient(api_key=deepseek_key, model=model, api_base=api_base)
         else:
-            client = GeminiClient(api_key=api_key, model=model, api_base=api_base)
+            api_key = os.getenv("GEMINI_API_KEY")
+            model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+            api_base = os.getenv("GEMINI_API_BASE")
+            if not api_key:
+                errors.append("DEEPSEEK_API_KEY and GEMINI_API_KEY are missing; falling back to no-llm mode")
+            else:
+                client = GeminiClient(api_key=api_key, model=model, api_base=api_base)
 
     sections_output: Dict[str, Dict[str, Any]] = {}
     dedup_stats: Dict[str, Any] = {}
