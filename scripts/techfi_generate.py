@@ -324,9 +324,9 @@ def hn_bonus_for_title(title: str, hot_titles: List[str]) -> float:
 def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, str]:
     if client is None:
         return {
-            "what_happened": f"News: {item.title_en}",
-            "why_it_matters": "Importance: to be filled",
-            "what_to_watch": "Watch: to be filled",
+            "what_happened": f"新闻要点：{item.title_en}",
+            "why_it_matters": "重要性：待补充",
+            "what_to_watch": "关注点：待补充",
         }
     prompt = (
         "Summarize the following English news headline into Chinese with plain language. "
@@ -350,7 +350,7 @@ def generate_explain(client: Optional[GeminiClient], item: Item) -> Dict[str, st
 
 def generate_highlights(client: Optional[GeminiClient], items: List[Dict[str, Any]]) -> List[str]:
     if client is None:
-        return ["Highlights not generated (LLM disabled)"]
+        return ["要点待生成（LLM未启用）"]
     lines = []
     for item in items:
         lines.append(f"[{item['section']}] {item['title_en']}")
@@ -394,16 +394,22 @@ def build_telegram_messages(
     messages = []
 
     main_lines = [f"<b>TechFiDaily</b> · {content_date_bj}"]
-    main_lines.append("\n<b>Highlights</b>")
+    main_lines.append("\n<b>今日要点</b>")
     for idx, highlight in enumerate(highlights_zh, start=1):
         main_lines.append(f"{idx}. {html.escape(highlight)}")
-    main_lines.append("\n<b>Sections</b>")
+    main_lines.append("\n<b>板块数量</b>")
+    section_names = {
+        "tech": "科技",
+        "finance": "金融",
+        "geo": "地缘政治",
+        "crypto": "加密",
+    }
     for key in ["tech", "finance", "geo", "crypto"]:
         count = len(sections[key]["items"])
-        main_lines.append(f"- {key.capitalize()}: {count}")
+        main_lines.append(f"- {section_names[key]}: {count}")
     messages.append({"key": "main", "text_html": "\n".join(main_lines)})
 
-    for key, title in [("tech", "Tech"), ("finance", "Finance"), ("geo", "Geopolitics"), ("crypto", "Crypto")]:
+    for key, title in [("tech", "科技"), ("finance", "金融"), ("geo", "地缘政治"), ("crypto", "加密")]:
         lines = [f"<b>{title}</b> · {content_date_bj}"]
         for idx, item in enumerate(sections[key]["items"], start=1):
             explain = item["explain_zh"]

@@ -38,6 +38,19 @@ python scripts/techfi_publish.py
 - Telegram: update the same 5 messages (main + 4 sections)
 - Lark: single Daily table row per content date
 
+## GitHub Secrets
+
+Set these in repo secrets before enabling the workflow:
+
+- `GEMINI_API_KEY`
+- `GEMINI_API_BASE` (optional)
+- `TG_BOT_TOKEN`
+- `TG_CHAT_ID`
+- `LARK_APP_ID`
+- `LARK_APP_SECRET`
+- `LARK_BITABLE_APP_TOKEN`
+- `LARK_BITABLE_TABLE_ID`
+
 ## Notes
 
 - Gemini model default: `gemini-3-flash-preview`
