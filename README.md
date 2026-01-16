@@ -13,6 +13,18 @@ Daily news pipeline that generates Tech/Finance/Geopolitics/Crypto briefs from E
 
 Copy `config/runtime.example.env` to `.env` and fill in secrets.
 
+## Generate
+
+```bash
+python scripts/techfi_generate.py
+```
+
+Skip LLM (local smoke test):
+
+```bash
+python scripts/techfi_generate.py --no-llm
+```
+
 ## Default behavior
 
 - Content date: yesterday (Beijing time)
