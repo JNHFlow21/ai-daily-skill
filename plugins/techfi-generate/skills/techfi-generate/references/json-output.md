@@ -49,9 +49,11 @@ It must be sufficient for:
   "source": "BBC | CoinDesk | SEC | ...",
   "url": "https://...",
   "published_at": "ISO-8601 or original string",
+  "image_url": "https://... (optional)",
   "explain_zh": {
     "what_happened": "发生了什么（一句话）",
-    "why_it_matters": "为什么重要（一句话）",
+    "why_it_matters": "为什么重要（1-2句）",
+    "viewpoint": "点评（1-2句）",
     "what_to_watch": "接下来关注什么（一句话）"
   }
 }
@@ -60,4 +62,3 @@ It must be sufficient for:
 Notes:
 - `telegram.messages[].text_html` should be ready for Telegram `parse_mode=HTML`.
 - The publisher is responsible for send/edit; generator only constructs payload.
-
