@@ -25,6 +25,12 @@ Skip LLM (local smoke test):
 python scripts/techfi_generate.py --no-llm
 ```
 
+## Publish
+
+```bash
+python scripts/techfi_publish.py
+```
+
 ## Default behavior
 
 - Content date: yesterday (Beijing time)
