@@ -90,7 +90,7 @@ TIER_A = [
 TIER_B = [
     "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
     "Mixed", "Road to VR", "smol", "SIPRI", "RUSI", "CSIS", "CFR",
-    "TechCrunch", "STAT", "BioPharma Dive",
+    "TechCrunch", "STAT", "BioPharma Dive", "CNBC", "MarketWatch", "Investing",
     "Robot Report", "Robotics Business Review", "UploadVR", "Space.com",
     "Foreign Policy", "Google News"
 ]

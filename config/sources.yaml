@@ -106,6 +106,15 @@ sections:
       - name: EIA Today in Energy
         url: https://www.eia.gov/rss/todayinenergy.xml
         type: rss
+      - name: CNBC Top News
+        url: https://www.cnbc.com/id/100003114/device/rss/rss.html
+        type: rss
+      - name: MarketWatch Top Stories
+        url: https://feeds.marketwatch.com/marketwatch/topstories/
+        type: rss
+      - name: Investing.com Commodities
+        url: https://www.investing.com/rss/news_11.rss
+        type: rss
       - name: Google News Macro
         url: https://news.google.com/rss/search?q=macro%20economy%20OR%20inflation%20OR%20central%20bank%20OR%20bond%20yield%20OR%20oil%20OR%20gold%20OR%20copper&hl=en-US&gl=US&ceid=US:en
         type: rss
