@@ -13,7 +13,7 @@ import requests
 TIMEOUT_SECS = 20
 
 SECTION_TITLES = {
-    "tech_ai": "AI与监管",
+    "tech_ai": "AI",
     "tech_embodied": "具身智能",
     "tech_biotech": "生物科技",
     "tech_space": "太空探索与无人机",

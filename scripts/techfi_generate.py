@@ -89,7 +89,7 @@ TIER_A = [
 ]
 TIER_B = [
     "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
-    "Fierce", "Mixed", "Road to VR", "sUAS"
+    "Fierce", "Mixed", "Road to VR", "sUAS", "smol"
 ]
 
 TRACKING_PARAMS = {
@@ -727,17 +727,20 @@ def generate_butterfly_effect(client: Optional[LLMClient], items: List[Dict[str,
     is_deepseek = isinstance(client, DeepSeekClient)
     if is_deepseek:
         prompt = (
-            "You are a cross-asset analyst. Based only on the headlines, write a short Chinese "
-            "cross-section butterfly-effect insight that links at least two sections and explains "
-            "a plausible transmission path to assets (US equities/commodities/precious metals/crypto). "
-            "Use 2-3 sentences, <= 80 Chinese characters each, avoid hype and avoid new facts. "
+            "Role: 全球跨资产首席分析师（AI + Web3背景）。基于标题生成跨板块蝴蝶效应分析，要求：\n"
+            "1) 至少关联两个板块；\n"
+            "2) 明确资产传导链路（美股/大宗商品/贵金属/加密里至少提到两类）；\n"
+            "3) 标注信号还是噪音；\n"
+            "4) 给出生活化类比；\n"
+            "5) 2-4句中文，每句<=80字，不臆测新事实。\n"
             "Return JSON object with key butterfly_effect.\n"
             "Input headlines:\n" + "\n".join(lines)
         )
     else:
         prompt = (
-            "Write a short Chinese cross-section butterfly-effect insight linking at least two sections "
-            "and a plausible asset transmission path. 2-3 sentences, <= 80 Chinese characters each. "
+            "Create a Chinese cross-section butterfly-effect insight. Link at least two sections, "
+            "mention a plausible asset transmission path (US equities/commodities/precious metals/crypto), "
+            "label signal vs noise, and include a life analogy. 2-4 sentences, <=80 chars each. "
             "Return JSON object with key butterfly_effect.\n"
             "Input headlines:\n" + "\n".join(lines)
         )
@@ -822,7 +825,7 @@ def build_telegram_messages(
         main_lines.append(f"{idx}. {html.escape(highlight)}")
     main_lines.append("\n<b>板块数量</b>")
     section_names = {
-        "tech_ai": "AI与监管",
+        "tech_ai": "AI",
         "tech_embodied": "具身智能",
         "tech_biotech": "生物科技",
         "tech_space": "太空探索与无人机",

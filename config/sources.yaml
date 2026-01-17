@@ -4,11 +4,8 @@
 sections:
   tech_ai:
     primary_sources:
-      - name: NIST Information Technology
-        url: https://www.nist.gov/news-events/information%20technology/rss.xml
-        type: rss
-      - name: OpenAI News
-        url: https://openai.com/news/rss.xml
+      - name: smol.ai News
+        url: https://news.smol.ai/rss.xml
         type: rss
 
   tech_embodied:

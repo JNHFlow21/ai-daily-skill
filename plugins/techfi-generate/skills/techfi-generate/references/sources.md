@@ -8,10 +8,9 @@ Constraints:
 
 Note: The list is intended to be edited over time. Treat this file as the single source of truth for what to fetch.
 
-## Tech: AI & Regulation
+## Tech: AI
 
-- NIST Information Technology: `https://www.nist.gov/news-events/information%20technology/rss.xml`
-- OpenAI News: `https://openai.com/news/rss.xml`
+- smol.ai News: `https://news.smol.ai/rss.xml`
 
 ## Tech: Embodied Intelligence & Robotics
 
