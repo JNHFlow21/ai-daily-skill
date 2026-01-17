@@ -29,14 +29,21 @@ Note: The list is intended to be edited over time. Treat this file as the single
 - BioPharma Dive: `https://www.biopharmadive.com/feeds/news/`
 - STAT News: `https://www.statnews.com/feed/`
 - Google News Biotech: `https://news.google.com/rss/search?q=biotechnology%20OR%20gene%20therapy&hl=en-US&gl=US&ceid=US:en`
+- Google News Longevity: `https://news.google.com/rss/search?q=longevity%20research%20OR%20aging%20research%20OR%20senescence&hl=en-US&gl=US&ceid=US:en`
 
-## Tech: Space & Drones
+## Tech: Space
 
 - NASA Technology: `https://www.nasa.gov/technology/feed/`
 - JPL News: `https://www.jpl.nasa.gov/feeds/news/`
 - SpaceNews: `https://spacenews.com/feed/`
 - Space.com: `https://www.space.com/feeds/all`
 - NASA Aeronautics: `https://www.nasa.gov/aeronautics/feed/`
+
+## Tech: Drones
+
+- DroneLife: `https://dronelife.com/feed/`
+- TechCrunch Drones: `https://techcrunch.com/tag/drones/feed/`
+- Google News Drones: `https://news.google.com/rss/search?q=drone%20OR%20uav%20OR%20unmanned%20aircraft&hl=en-US&gl=US&ceid=US:en`
 
 ## Tech: Spatial Computing
 
@@ -48,7 +55,6 @@ Note: The list is intended to be edited over time. Treat this file as the single
 ## Finance
 
 - Federal Reserve Press Releases: `https://www.federalreserve.gov/feeds/press_all.xml`
-- Federal Reserve Speeches & Testimony: `https://www.federalreserve.gov/feeds/speeches_and_testimony.xml`
 - Financial Stability Board Press Releases: `https://www.fsb.org/wordpress/content_type/press-releases/feed/`
 - Financial Stability Board G20 Reports: `https://www.fsb.org/wordpress/content_type/reports-to-the-g20/feed/`
 - BIS Press Releases: `https://www.bis.org/doclist/all_pressrels.rss`

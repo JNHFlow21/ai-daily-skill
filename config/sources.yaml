@@ -49,6 +49,9 @@ sections:
       - name: Google News Biotech
         url: https://news.google.com/rss/search?q=biotechnology%20OR%20gene%20therapy&hl=en-US&gl=US&ceid=US:en
         type: rss
+      - name: Google News Longevity
+        url: https://news.google.com/rss/search?q=longevity%20research%20OR%20aging%20research%20OR%20senescence&hl=en-US&gl=US&ceid=US:en
+        type: rss
 
   tech_space:
     primary_sources:
@@ -66,6 +69,18 @@ sections:
         type: rss
       - name: NASA Aeronautics
         url: https://www.nasa.gov/aeronautics/feed/
+        type: rss
+
+  tech_drones:
+    primary_sources:
+      - name: DroneLife
+        url: https://dronelife.com/feed/
+        type: rss
+      - name: TechCrunch Drones
+        url: https://techcrunch.com/tag/drones/feed/
+        type: rss
+      - name: Google News Drones
+        url: https://news.google.com/rss/search?q=drone%20OR%20uav%20OR%20unmanned%20aircraft&hl=en-US&gl=US&ceid=US:en
         type: rss
 
   tech_spatial:
@@ -87,9 +102,6 @@ sections:
     primary_sources:
       - name: Federal Reserve Press Releases
         url: https://www.federalreserve.gov/feeds/press_all.xml
-        type: rss
-      - name: Federal Reserve Speeches & Testimony
-        url: https://www.federalreserve.gov/feeds/speeches_and_testimony.xml
         type: rss
       - name: Financial Stability Board Press Releases
         url: https://www.fsb.org/wordpress/content_type/press-releases/feed/

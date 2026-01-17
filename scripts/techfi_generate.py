@@ -28,6 +28,7 @@ SECTION_ORDER = [
     "tech_embodied",
     "tech_biotech",
     "tech_space",
+    "tech_drones",
     "tech_spatial",
     "finance",
     "geo",
@@ -59,11 +60,14 @@ KEYWORDS_BY_SECTION = {
     ],
     "tech_biotech": [
         "biotech", "gene", "genetic", "clinical", "trial", "therapy",
-        "drug", "pharma", "crispr"
+        "drug", "pharma", "crispr", "longevity", "aging", "senescence"
     ],
     "tech_space": [
         "launch", "rocket", "satellite", "orbit", "mission", "nasa",
-        "space", "aerospace", "drone", "uav"
+        "space", "aerospace"
+    ],
+    "tech_drones": [
+        "drone", "uav", "uas", "unmanned", "quadcopter", "aerial", "autonomy"
     ],
     "tech_spatial": [
         "vr", "ar", "xr", "spatial", "headset", "mixed reality", "vision",
@@ -91,7 +95,7 @@ TIER_B = [
     "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
     "Mixed", "Road to VR", "smol", "SIPRI", "RUSI", "CSIS", "CFR",
     "TechCrunch", "STAT", "BioPharma Dive", "CNBC", "MarketWatch", "Investing",
-    "Robot Report", "Robotics Business Review", "UploadVR", "Space.com",
+    "Robot Report", "Robotics Business Review", "UploadVR", "Space.com", "DroneLife",
     "Foreign Policy", "Google News"
 ]
 
@@ -465,7 +469,7 @@ def extract_image_from_entry(entry: Any) -> Optional[str]:
     return None
 
 
-def fetch_og_image(url: str) -> Optional[str]:
+def fetch_og_image(url: str, forbid_google_icons: bool = False) -> Optional[str]:
     if not url:
         return None
     headers = {"User-Agent": USER_AGENT}
@@ -486,15 +490,71 @@ def fetch_og_image(url: str) -> Optional[str]:
         if match:
             image_url = match.group(1).strip()
             if image_url.startswith(("http://", "https://")):
+                if forbid_google_icons and is_google_icon_url(image_url):
+                    continue
                 return image_url
-            return urljoin(url, image_url)
+            resolved = urljoin(url, image_url)
+            if forbid_google_icons and is_google_icon_url(resolved):
+                continue
+            return resolved
     return None
 
 
 def resolve_image_url(item: Item) -> Optional[str]:
-    if item.image_url:
+    if is_google_news_url(item.url):
+        target_url = resolve_google_news_target(item.url)
+        if not target_url:
+            return None
+        return fetch_og_image(target_url, forbid_google_icons=True)
+    if item.image_url and not is_google_icon_url(item.image_url):
         return item.image_url
     return fetch_og_image(item.url)
+
+
+def is_google_news_url(url: str) -> bool:
+    try:
+        host = urlparse(url).netloc.lower()
+    except Exception:
+        return False
+    return "news.google.com" in host
+
+
+def resolve_google_news_target(url: str) -> Optional[str]:
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return None
+    if "news.google.com" not in parsed.netloc.lower():
+        return None
+    qs = dict(parse_qsl(parsed.query))
+    for key in ("url", "u", "q"):
+        candidate = qs.get(key)
+        if candidate and candidate.startswith(("http://", "https://")):
+            return candidate
+    headers = {"User-Agent": USER_AGENT}
+    try:
+        response = requests.get(url, headers=headers, timeout=TIMEOUT_SECS, allow_redirects=True)
+        final_url = response.url
+        if final_url and not is_google_news_url(final_url):
+            return final_url
+    except Exception:
+        return None
+    return None
+
+
+def is_google_icon_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+    host = parsed.netloc.lower()
+    if "google" not in host and "gstatic" not in host and "googleusercontent" not in host:
+        return False
+    path = (parsed.path or "").lower()
+    for token in ("logo", "logos", "branding", "favicon", "google"):
+        if token in path:
+            return True
+    return "gstatic.com" in host or "googleusercontent.com" in host
 
 
 def filter_by_date(items: List[Item], now_dt: dt.datetime) -> List[Item]:
@@ -831,7 +891,8 @@ def build_telegram_messages(
         "tech_ai": "AI",
         "tech_embodied": "具身智能",
         "tech_biotech": "生物科技",
-        "tech_space": "太空探索与无人机",
+        "tech_space": "太空探索",
+        "tech_drones": "无人机",
         "tech_spatial": "空间计算",
         "finance": "金融",
         "geo": "地缘政治",

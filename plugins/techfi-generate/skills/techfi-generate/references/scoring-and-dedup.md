@@ -19,6 +19,9 @@ Pick cluster primary item:
 - Prefer higher tier sources.
 - Prefer more recent `published_at`.
 
+Cross-section order (keep first section only):
+- Tech-AI → Tech-Embodied → Tech-Biotech → Tech-Space → Tech-Drones → Tech-Spatial → Finance → Geopolitics → Crypto.
+
 ## Source tiers (suggested)
 
 - Tier A (official): SEC / CFTC / central banks / UN / IAEA / NASA / NIST / NSF / JPL

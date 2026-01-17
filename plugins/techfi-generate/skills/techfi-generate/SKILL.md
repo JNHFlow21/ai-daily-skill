@@ -17,7 +17,7 @@ Only generates the daily content and writes one reusable artifact JSON. Does **n
 ## Defaults (fixed by design)
 
 - **Date scope**: rolling 24 hours from generation time (北京时间), no date override.
-- **Sections**: Tech-AI / Tech-Embodied / Tech-Biotech / Tech-Space / Tech-Spatial / Finance / Geopolitics / Crypto.
+- **Sections**: Tech-AI / Tech-Embodied / Tech-Biotech / Tech-Space / Tech-Drones / Tech-Spatial / Finance / Geopolitics / Crypto.
 - **Output size**: Top 5 items per section (热点资讯, 7-day backfill when needed).
 - **Sources**: English only; no exchange announcements; no blogs.
 - **Output**: a single JSON file at `artifacts/techfi-daily/latest.json`.
@@ -74,7 +74,7 @@ Pick one “primary link” per cluster (highest score / most authoritative).
 
 Cross-section rule:
 - If the same story appears in multiple sections, keep it only in the first section
-  (order: Tech-AI → Tech-Embodied → Tech-Biotech → Tech-Space → Tech-Spatial → Finance → Geopolitics → Crypto).
+  (order: Tech-AI → Tech-Embodied → Tech-Biotech → Tech-Space → Tech-Drones → Tech-Spatial → Finance → Geopolitics → Crypto).
 
 ## Step 5: Score hotness and pick Top 5
 
@@ -117,7 +117,7 @@ Rules:
 Generate message payloads that `techfi-publish` can upsert:
 - `main`: title + highlights + section list + counts
 - `butterfly`: cross-section butterfly-effect insight
-- `tech_ai`, `tech_embodied`, `tech_biotech`, `tech_space`, `tech_spatial`, `finance`, `geo`, `crypto`
+- `tech_ai`, `tech_embodied`, `tech_biotech`, `tech_space`, `tech_drones`, `tech_spatial`, `finance`, `geo`, `crypto`
   each contains up to 5 items with Chinese explanation + source link
 
 Important:

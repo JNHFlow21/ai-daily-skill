@@ -16,7 +16,8 @@ SECTION_TITLES = {
     "tech_ai": "AI",
     "tech_embodied": "具身智能",
     "tech_biotech": "生物科技",
-    "tech_space": "太空探索与无人机",
+    "tech_space": "太空探索",
+    "tech_drones": "无人机",
     "tech_spatial": "空间计算",
     "finance": "金融",
     "geo": "地缘政治",
@@ -28,6 +29,7 @@ TECH_SECTION_KEYS = [
     "tech_embodied",
     "tech_biotech",
     "tech_space",
+    "tech_drones",
     "tech_spatial",
 ]
 
