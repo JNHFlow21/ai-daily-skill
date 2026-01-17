@@ -25,6 +25,43 @@ class TelegramClient:
         self.chat_id = chat_id
         self.base_url = f"https://api.telegram.org/bot{token}"
 
+    def _post(self, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"{self.base_url}/{method}"
+        last_error: Optional[Exception] = None
+        for attempt in range(5):
+            response = requests.post(url, json=payload, timeout=TIMEOUT_SECS)
+            if response.status_code == 429:
+                try:
+                    data = response.json()
+                except Exception:
+                    data = {}
+                retry_after = None
+                if isinstance(data, dict):
+                    retry_after = data.get("parameters", {}).get("retry_after")
+                if not retry_after:
+                    retry_after = response.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        time.sleep(float(retry_after))
+                        continue
+                    except Exception:
+                        pass
+                time.sleep(min(2 ** attempt, 8))
+                last_error = RuntimeError(data or response.text)
+                continue
+            if response.status_code >= 500:
+                time.sleep(min(2 ** attempt, 8))
+                last_error = RuntimeError(response.text)
+                continue
+            response.raise_for_status()
+            data = response.json()
+            if not data.get("ok"):
+                raise RuntimeError(data)
+            return data
+        if last_error:
+            raise last_error
+        raise RuntimeError("Telegram request failed without response")
+
     def send_message(self, text_html: str) -> int:
         payload = {
             "chat_id": self.chat_id,
@@ -32,15 +69,7 @@ class TelegramClient:
             "parse_mode": "HTML",
             "disable_web_page_preview": True,
         }
-        response = requests.post(
-            f"{self.base_url}/sendMessage",
-            json=payload,
-            timeout=TIMEOUT_SECS,
-        )
-        response.raise_for_status()
-        data = response.json()
-        if not data.get("ok"):
-            raise RuntimeError(data)
+        data = self._post("sendMessage", payload)
         return data["result"]["message_id"]
 
     def edit_message(self, message_id: int, text_html: str) -> None:
@@ -51,15 +80,7 @@ class TelegramClient:
             "parse_mode": "HTML",
             "disable_web_page_preview": True,
         }
-        response = requests.post(
-            f"{self.base_url}/editMessageText",
-            json=payload,
-            timeout=TIMEOUT_SECS,
-        )
-        response.raise_for_status()
-        data = response.json()
-        if not data.get("ok"):
-            raise RuntimeError(data)
+        self._post("editMessageText", payload)
 
     def send_photo(self, photo_url: str, caption: Optional[str] = None) -> int:
         payload: Dict[str, Any] = {
@@ -69,15 +90,7 @@ class TelegramClient:
         if caption:
             payload["caption"] = caption
             payload["parse_mode"] = "HTML"
-        response = requests.post(
-            f"{self.base_url}/sendPhoto",
-            json=payload,
-            timeout=TIMEOUT_SECS,
-        )
-        response.raise_for_status()
-        data = response.json()
-        if not data.get("ok"):
-            raise RuntimeError(data)
+        data = self._post("sendPhoto", payload)
         return data["result"]["message_id"]
 
     def edit_photo(self, message_id: int, photo_url: str, caption: Optional[str] = None) -> None:
@@ -90,15 +103,7 @@ class TelegramClient:
             "message_id": message_id,
             "media": media,
         }
-        response = requests.post(
-            f"{self.base_url}/editMessageMedia",
-            json=payload,
-            timeout=TIMEOUT_SECS,
-        )
-        response.raise_for_status()
-        data = response.json()
-        if not data.get("ok"):
-            raise RuntimeError(data)
+        self._post("editMessageMedia", payload)
 
 
 class BitableClient:

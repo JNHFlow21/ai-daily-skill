@@ -550,6 +550,11 @@ def fallback_highlights(reason: str) -> List[str]:
 
 
 def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[str, str]]:
+    explain_keys = {"what_happened", "why_it_matters", "viewpoint", "what_to_watch"}
+
+    def is_explain_obj(value: Any) -> bool:
+        return isinstance(value, dict) and explain_keys.issubset(value.keys())
+
     lines = []
     for idx, item in enumerate(items, start=1):
         line = f"{idx}. {item.title_en} (Source: {item.source})"
@@ -564,6 +569,7 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
             "what_happened, why_it_matters, viewpoint, what_to_watch. Each value must be 1-2 "
             "sentences, <= 60 Chinese characters, no hype, no emojis. "
             "Viewpoint should be a brief analyst-style comment based only on the headline and source. "
+            "Always return items as an array even if there is only one input. "
             "Input:\n" + "\n".join(lines)
         )
     else:
@@ -594,10 +600,16 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
         response_schema=schema,
     )
     parsed = safe_json_from_text(raw)
-    if isinstance(parsed, dict) and isinstance(parsed.get("items"), list):
-        parsed = parsed["items"]
+    if isinstance(parsed, dict):
+        items_value = parsed.get("items")
+        if isinstance(items_value, list):
+            parsed = items_value
+        elif is_explain_obj(items_value):
+            parsed = [items_value]
+        elif is_explain_obj(parsed):
+            parsed = [parsed]
     if not isinstance(parsed, list):
-        raise RuntimeError("Gemini batch output is not a list")
+        raise RuntimeError("LLM batch output is not a list")
     return parsed
 
 
