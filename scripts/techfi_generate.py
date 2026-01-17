@@ -621,15 +621,12 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
     if not isinstance(parsed_list, list):
         raise RuntimeError("LLM batch output is not a list")
     normalized: List[Dict[str, str]] = []
-    for idx, value in enumerate(parsed_list):
-        if idx >= len(items):
-            break
+    for idx in range(len(items)):
+        value = parsed_list[idx] if idx < len(parsed_list) else None
         if is_explain_obj(value):
             normalized.append(value)
         else:
-            normalized.append(fallback_explain(items[idx]))
-    while len(normalized) < len(items):
-        normalized.append(fallback_explain(items[len(normalized)]))
+            normalized.append(generate_explain(client, items[idx]))
     return normalized
 
 

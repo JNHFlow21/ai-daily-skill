@@ -94,7 +94,7 @@ Format (fixed):
 - **接下来关注什么**：一句话讲清可验证的后续
 
 Keep it concise; avoid long paragraphs.
-If the batch output is malformed or the section only has 1 item, fall back to per-item LLM calls.
+If the batch output is malformed, item count mismatches, or the section only has 1 item, fall back to per-item LLM calls.
 
 ## Step 7: Resolve per-item image_url (optional)
 
