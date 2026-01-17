@@ -12,6 +12,27 @@ import requests
 
 TIMEOUT_SECS = 20
 
+SECTION_TITLES = {
+    "tech_ai": "AI与监管",
+    "tech_embodied": "具身智能",
+    "tech_biotech": "生物科技",
+    "tech_space": "太空探索与无人机",
+    "tech_spatial": "空间计算",
+    "finance": "金融",
+    "geo": "地缘政治",
+    "crypto": "加密",
+}
+
+TECH_SECTION_KEYS = [
+    "tech_ai",
+    "tech_embodied",
+    "tech_biotech",
+    "tech_space",
+    "tech_spatial",
+]
+
+SECTION_ORDER = TECH_SECTION_KEYS + ["finance", "geo", "crypto"]
+
 
 @dataclass
 class TelegramMessage:
@@ -220,6 +241,19 @@ def render_section_text(items: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def render_grouped_section_text(groups: List[Dict[str, Any]]) -> str:
+    lines: List[str] = []
+    for group in groups:
+        title = group.get("title", "")
+        items = group.get("items", [])
+        if title:
+            lines.append(f"[{title}]")
+        if items:
+            lines.append(render_section_text(items))
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
 def limit_message(text: str, limit: int = 3800) -> str:
     if len(text) <= limit:
         return text
@@ -324,12 +358,17 @@ def main() -> int:
     highlights_zh = artifact.get("highlights_zh", [])
     sections = artifact.get("sections", {})
 
+    tech_groups = [
+        {"title": SECTION_TITLES[key], "items": sections.get(key, {}).get("items", [])}
+        for key in TECH_SECTION_KEYS
+    ]
+
     base_fields = {
         "publish_date_bj": publish_date_bj,
         "content_date_bj": content_date_bj,
         "title": f"TechFiDaily {content_date_bj}",
         "highlights": "\n".join(highlights_zh),
-        "tech_md": render_section_text(sections.get("tech", {}).get("items", [])),
+        "tech_md": render_grouped_section_text(tech_groups),
         "finance_md": render_section_text(sections.get("finance", {}).get("items", [])),
         "geo_md": render_section_text(sections.get("geo", {}).get("items", [])),
         "crypto_md": render_section_text(sections.get("crypto", {}).get("items", [])),
@@ -391,18 +430,25 @@ def main() -> int:
                     else:
                         tg_message_ids["main"] = telegram_client.send_message(text_html)
 
-            section_titles = {
-                "tech": "科技",
-                "finance": "金融",
-                "geo": "地缘政治",
-                "crypto": "加密",
-            }
-            for section in ["tech", "finance", "geo", "crypto"]:
+            butterfly_message = message_map.get("butterfly")
+            if butterfly_message:
+                text_html = limit_message(butterfly_message.get("text_html", ""))
+                if text_html:
+                    if "butterfly" in existing_ids:
+                        try:
+                            telegram_client.edit_message(existing_ids["butterfly"], text_html)
+                            tg_message_ids["butterfly"] = existing_ids["butterfly"]
+                        except Exception:
+                            tg_message_ids["butterfly"] = telegram_client.send_message(text_html)
+                    else:
+                        tg_message_ids["butterfly"] = telegram_client.send_message(text_html)
+
+            for section in SECTION_ORDER:
                 items = sections.get(section, {}).get("items", [])
                 for idx, item in enumerate(items, start=1):
                     key_text = f"{section}-{idx}"
                     text_html = limit_caption(
-                        render_item_html(section_titles[section], content_date_bj, idx, item)
+                        render_item_html(SECTION_TITLES.get(section, section), content_date_bj, idx, item)
                     )
                     message_id = send_with_fallback(
                         telegram_client,

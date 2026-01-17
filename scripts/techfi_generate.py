@@ -20,7 +20,19 @@ from zoneinfo import ZoneInfo
 USER_AGENT = "TechFiDailyBot/1.0 (+https://github.com/JNHFlow21/ai-daily-skill)"
 TIMEOUT_SECS = 20
 MAX_ITEMS_PER_SECTION = 5
+WINDOW_HOURS = 24
 SECTION_ALIASES = {"geopolitics": "geo"}
+
+SECTION_ORDER = [
+    "tech_ai",
+    "tech_embodied",
+    "tech_biotech",
+    "tech_space",
+    "tech_spatial",
+    "finance",
+    "geo",
+    "crypto",
+]
 
 INDEX_FEED_MAP = {
     "https://arstechnica.com/rss-feeds/": ["https://feeds.arstechnica.com/arstechnica/index"],
@@ -37,9 +49,25 @@ INDEX_FEED_MAP = {
 }
 
 KEYWORDS_BY_SECTION = {
-    "tech": [
-        "launch", "released", "acquire", "acquisition", "breach", "security",
-        "chip", "ai", "model", "ban", "lawsuit"
+    "tech_ai": [
+        "ai", "model", "chip", "gpu", "compute", "regulation", "policy",
+        "benchmark", "alignment", "inference", "training"
+    ],
+    "tech_embodied": [
+        "robot", "robotics", "autonomous", "drone", "uav", "sensor",
+        "manufacturing", "automation"
+    ],
+    "tech_biotech": [
+        "biotech", "gene", "genetic", "clinical", "trial", "therapy",
+        "drug", "pharma", "crispr"
+    ],
+    "tech_space": [
+        "launch", "rocket", "satellite", "orbit", "mission", "nasa",
+        "space", "aerospace", "drone", "uav"
+    ],
+    "tech_spatial": [
+        "vr", "ar", "xr", "spatial", "headset", "mixed reality", "vision",
+        "display"
     ],
     "finance": [
         "cpi", "inflation", "rate hike", "rate cut", "jobs report", "recession",
@@ -55,8 +83,14 @@ KEYWORDS_BY_SECTION = {
     ],
 }
 
-TIER_A = ["SEC", "CFTC", "Federal Reserve", "ECB", "UN", "IAEA"]
-TIER_B = ["BBC", "Guardian", "Al Jazeera"]
+TIER_A = [
+    "SEC", "CFTC", "Federal Reserve", "ECB", "BIS", "EIA",
+    "UN", "IAEA", "NASA", "JPL", "NIST", "NSF", "OpenAI"
+]
+TIER_B = [
+    "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
+    "Fierce", "Mixed", "Road to VR", "sUAS"
+]
 
 TRACKING_PARAMS = {
     "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
@@ -460,36 +494,19 @@ def resolve_image_url(item: Item) -> Optional[str]:
     return fetch_og_image(item.url)
 
 
-def filter_by_date(items: List[Item], content_date_bj: str) -> List[Item]:
+def filter_by_date(items: List[Item], now_dt: dt.datetime) -> List[Item]:
     tz_bj = ZoneInfo("Asia/Shanghai")
-    content_date = dt.date.fromisoformat(content_date_bj)
-    same_day: List[Item] = []
-    undated: List[Item] = []
-    dated: List[Tuple[dt.date, Item]] = []
+    window_start = now_dt - dt.timedelta(hours=WINDOW_HOURS)
+    results: List[Item] = []
     for item in items:
         if not item.published_at:
-            undated.append(item)
             continue
         published_dt = parse_datetime(item.published_at, None)
         if not published_dt:
-            undated.append(item)
             continue
-        published_bj = published_dt.astimezone(tz_bj).date()
-        if published_bj == content_date:
-            same_day.append(item)
-        else:
-            dated.append((published_bj, item))
-    results = same_day + undated
-    if len(results) >= MAX_ITEMS_PER_SECTION:
-        return results
-    dated.sort(key=lambda pair: pair[0], reverse=True)
-    for published_bj, item in dated:
-        if published_bj > content_date:
-            continue
-        if (content_date - published_bj).days <= 7:
+        published_bj = published_dt.astimezone(tz_bj)
+        if window_start <= published_bj <= now_dt:
             results.append(item)
-        if len(results) >= MAX_ITEMS_PER_SECTION:
-            break
     return results
 
 
@@ -697,6 +714,49 @@ def generate_highlights(client: Optional[LLMClient], items: List[Dict[str, Any]]
     return fallback_highlights("LLM输出异常")
 
 
+def fallback_butterfly_effect(reason: str) -> str:
+    return f"跨板块联动待生成（{reason}）"
+
+
+def generate_butterfly_effect(client: Optional[LLMClient], items: List[Dict[str, Any]]) -> str:
+    if client is None:
+        return fallback_butterfly_effect("LLM未启用")
+    lines = []
+    for item in items:
+        lines.append(f"[{item['section']}] {item['title_en']}")
+    is_deepseek = isinstance(client, DeepSeekClient)
+    if is_deepseek:
+        prompt = (
+            "You are a cross-asset analyst. Based only on the headlines, write a short Chinese "
+            "cross-section butterfly-effect insight that links at least two sections and explains "
+            "a plausible transmission path to assets (US equities/commodities/precious metals/crypto). "
+            "Use 2-3 sentences, <= 80 Chinese characters each, avoid hype and avoid new facts. "
+            "Return JSON object with key butterfly_effect.\n"
+            "Input headlines:\n" + "\n".join(lines)
+        )
+    else:
+        prompt = (
+            "Write a short Chinese cross-section butterfly-effect insight linking at least two sections "
+            "and a plausible asset transmission path. 2-3 sentences, <= 80 Chinese characters each. "
+            "Return JSON object with key butterfly_effect.\n"
+            "Input headlines:\n" + "\n".join(lines)
+        )
+    raw = client.generate_text(
+        prompt,
+        max_tokens=256,
+        response_mime_type="application/json",
+        response_schema={
+            "type": "object",
+            "properties": {"butterfly_effect": {"type": "string"}},
+            "required": ["butterfly_effect"],
+        },
+    )
+    parsed = safe_json_from_text(raw)
+    if isinstance(parsed, dict) and isinstance(parsed.get("butterfly_effect"), str):
+        return parsed["butterfly_effect"]
+    return fallback_butterfly_effect("LLM输出异常")
+
+
 def safe_json_from_text(text: str) -> Optional[Any]:
     text = text.strip()
     if text.startswith("```"):
@@ -751,28 +811,40 @@ def build_telegram_messages(
     content_date_bj: str,
     highlights_zh: List[str],
     sections: Dict[str, Dict[str, Any]],
+    butterfly_effect: Optional[str],
 ) -> List[Dict[str, str]]:
     messages = []
 
     main_lines = [f"<b>TechFiDaily</b> · {content_date_bj}"]
+    main_lines.append("统计口径：过去24小时")
     main_lines.append("\n<b>今日要点</b>")
     for idx, highlight in enumerate(highlights_zh, start=1):
         main_lines.append(f"{idx}. {html.escape(highlight)}")
     main_lines.append("\n<b>板块数量</b>")
     section_names = {
-        "tech": "科技",
+        "tech_ai": "AI与监管",
+        "tech_embodied": "具身智能",
+        "tech_biotech": "生物科技",
+        "tech_space": "太空探索与无人机",
+        "tech_spatial": "空间计算",
         "finance": "金融",
         "geo": "地缘政治",
         "crypto": "加密",
     }
-    for key in ["tech", "finance", "geo", "crypto"]:
-        count = len(sections[key]["items"])
-        main_lines.append(f"- {section_names[key]}: {count}")
+    section_order = [s for s in SECTION_ORDER if s in sections]
+    for key in section_order:
+        count = len(sections.get(key, {}).get("items", []))
+        main_lines.append(f"- {section_names.get(key, key)}: {count}")
     messages.append({"key": "main", "text_html": "\n".join(main_lines)})
 
-    for key, title in [("tech", "科技"), ("finance", "金融"), ("geo", "地缘政治"), ("crypto", "加密")]:
+    if butterfly_effect:
+        lines = [f"<b>跨板块蝴蝶效应</b> · {content_date_bj}", html.escape(butterfly_effect)]
+        messages.append({"key": "butterfly", "text_html": "\n".join(lines)})
+
+    for key in section_order:
+        title = section_names.get(key, key)
         lines = [f"<b>{title}</b> · {content_date_bj}"]
-        for idx, item in enumerate(sections[key]["items"], start=1):
+        for idx, item in enumerate(sections.get(key, {}).get("items", []), start=1):
             explain = item["explain_zh"]
             lines.append("")
             lines.append(f"{idx}) {html.escape(explain['what_happened'])}")
@@ -796,17 +868,18 @@ def main() -> int:
     tz_bj = ZoneInfo("Asia/Shanghai")
     now_bj = dt.datetime.now(tz_bj)
     publish_date_bj = now_bj.date().isoformat()
-    content_date_bj = (now_bj.date() - dt.timedelta(days=1)).isoformat()
+    content_date_bj = now_bj.date().isoformat()
 
     config = load_sources(args.sources)
     sections_config = config.get("sections", {})
 
-    all_items: Dict[str, List[Item]] = {"tech": [], "finance": [], "geo": [], "crypto": []}
+    all_items: Dict[str, List[Item]] = {}
     errors: List[str] = []
     sources_used: List[Dict[str, Any]] = []
 
     for section, section_cfg in sections_config.items():
         canonical_section = SECTION_ALIASES.get(section, section)
+        all_items.setdefault(canonical_section, [])
         for source in section_cfg.get("primary_sources", []):
             feed_urls = resolve_feed_urls(source, errors)
             for feed_url in feed_urls:
@@ -843,14 +916,20 @@ def main() -> int:
     selected_for_highlights: List[Dict[str, Any]] = []
     global_selected: List[Item] = []
 
-    for section, items in all_items.items():
-        filtered = filter_by_date(items, content_date_bj)
+    section_order = [s for s in SECTION_ORDER if s in all_items]
+    for section in list(all_items.keys()):
+        if section not in section_order:
+            section_order.append(section)
+
+    now_dt = dt.datetime.now(tz_bj)
+    for section in section_order:
+        items = all_items.get(section, [])
+        filtered = filter_by_date(items, now_dt)
         hot_titles = extract_hot_signal_titles(filtered)
         primary_items = [i for i in filtered if not i.is_hot_signal]
         clusters = build_clusters(primary_items)
 
         scored: List[Tuple[float, Item, List[Item]]] = []
-        now_dt = dt.datetime.now(tz_bj)
         for cluster in clusters:
             primary = choose_primary(cluster)
             published_dt = parse_datetime(primary.published_at, None)
@@ -914,16 +993,30 @@ def main() -> int:
         except Exception as exc:
             errors.append(f"LLM highlights failed: {exc}")
             highlights_zh = fallback_highlights("LLM失败")
-    telegram_messages = build_telegram_messages(content_date_bj, highlights_zh, sections_output)
+
+    if client is None:
+        butterfly_effect_zh = fallback_butterfly_effect("LLM未启用或失败")
+    else:
+        try:
+            butterfly_effect_zh = generate_butterfly_effect(client, selected_for_highlights)
+        except Exception as exc:
+            errors.append(f"LLM butterfly effect failed: {exc}")
+            butterfly_effect_zh = fallback_butterfly_effect("LLM失败")
+
+    telegram_messages = build_telegram_messages(
+        content_date_bj, highlights_zh, sections_output, butterfly_effect_zh
+    )
 
     output = {
         "meta": {
             "version": "1",
             "publish_date_bj": publish_date_bj,
             "content_date_bj": content_date_bj,
+            "window_hours": WINDOW_HOURS,
             "generated_at": dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc).isoformat(),
         },
         "highlights_zh": highlights_zh,
+        "butterfly_effect_zh": butterfly_effect_zh,
         "sections": sections_output,
         "telegram": {
             "messages": telegram_messages,

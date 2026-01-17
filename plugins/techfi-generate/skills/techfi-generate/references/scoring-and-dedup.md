@@ -21,9 +21,9 @@ Pick cluster primary item:
 
 ## Source tiers (suggested)
 
-- Tier A (official): SEC / CFTC / central banks / UN / IAEA
-- Tier B (major news): BBC / Reuters-like outlets (if added later)
-- Tier C (industry news): CoinDesk / DL News / Cointelegraph / MarketWatch / CNBC / The Register / Ars / WIRED
+- Tier A (official): SEC / CFTC / central banks / UN / IAEA / NASA / NIST / NSF / JPL
+- Tier B (major/industry): Nature / IEEE / SpaceNews / Fierce Biotech / Mixed / Road to VR / sUAS
+- Tier C (other industry/news): any remaining RSS sources
 
 ## Hotness score (simple)
 
@@ -42,6 +42,5 @@ Compute a stable score per cluster:
 
 ## Selection
 
-- Select exactly Top 5 clusters per section.
+- Select Top 5 clusters per section within the last 24 hours.
 - If fewer than 5 clusters exist, return fewer and record `partial` status.
-

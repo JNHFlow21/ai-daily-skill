@@ -15,11 +15,17 @@ It must be sufficient for:
     "version": "1",
     "publish_date_bj": "YYYY-MM-DD",
     "content_date_bj": "YYYY-MM-DD",
+    "window_hours": 24,
     "generated_at": "ISO-8601"
   },
   "highlights_zh": ["...", "..."],
+  "butterfly_effect_zh": "...",
   "sections": {
-    "tech": { "items": [] },
+    "tech_ai": { "items": [] },
+    "tech_embodied": { "items": [] },
+    "tech_biotech": { "items": [] },
+    "tech_space": { "items": [] },
+    "tech_spatial": { "items": [] },
     "finance": { "items": [] },
     "geo": { "items": [] },
     "crypto": { "items": [] }
@@ -27,7 +33,12 @@ It must be sufficient for:
   "telegram": {
     "messages": [
       { "key": "main", "text_html": "..." },
-      { "key": "tech", "text_html": "..." },
+      { "key": "butterfly", "text_html": "..." },
+      { "key": "tech_ai", "text_html": "..." },
+      { "key": "tech_embodied", "text_html": "..." },
+      { "key": "tech_biotech", "text_html": "..." },
+      { "key": "tech_space", "text_html": "..." },
+      { "key": "tech_spatial", "text_html": "..." },
       { "key": "finance", "text_html": "..." },
       { "key": "geo", "text_html": "..." },
       { "key": "crypto", "text_html": "..." }
@@ -41,7 +52,7 @@ It must be sufficient for:
 }
 ```
 
-## Item shape (each section has up to 5 items; backfill within 7 days if same-day is insufficient)
+## Item shape (each section has up to 5 items from the last 24 hours)
 
 ```json
 {

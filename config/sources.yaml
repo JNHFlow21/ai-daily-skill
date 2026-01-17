@@ -2,7 +2,34 @@
 # HN is a hotness signal only and cannot be used as a final citation.
 
 sections:
-  tech:
+  tech_ai:
+    primary_sources:
+      - name: NIST Information Technology
+        url: https://www.nist.gov/news-events/information%20technology/rss.xml
+        type: rss
+      - name: OpenAI News
+        url: https://openai.com/news/rss.xml
+        type: rss
+
+  tech_embodied:
+    primary_sources:
+      - name: NSF News
+        url: https://www.nsf.gov/rss/rss_www_news.xml
+        type: rss
+      - name: IEEE Spectrum Robotics
+        url: https://spectrum.ieee.org/rss/robotics/fulltext
+        type: rss
+
+  tech_biotech:
+    primary_sources:
+      - name: Nature Biotechnology
+        url: https://www.nature.com/nbt.rss
+        type: rss
+      - name: Fierce Biotech
+        url: https://www.fiercebiotech.com/rss/biotech
+        type: rss
+
+  tech_space:
     primary_sources:
       - name: NASA Technology
         url: https://www.nasa.gov/technology/feed/
@@ -10,14 +37,20 @@ sections:
       - name: JPL News
         url: https://www.jpl.nasa.gov/feeds/news/
         type: rss
-      - name: NSF News
-        url: https://www.nsf.gov/rss/rss_www_news.xml
+      - name: SpaceNews
+        url: https://spacenews.com/feed/
         type: rss
-      - name: NIST Information Technology
-        url: https://www.nist.gov/news-events/information%20technology/rss.xml
+      - name: sUAS News
+        url: https://www.suasnews.com/feed/
         type: rss
-      - name: NASA Aeronautics
-        url: https://www.nasa.gov/aeronautics/feed/
+
+  tech_spatial:
+    primary_sources:
+      - name: Mixed News
+        url: https://mixed-news.com/en/feed/
+        type: rss
+      - name: Road to VR
+        url: https://www.roadtovr.com/feed/
         type: rss
 
   finance:

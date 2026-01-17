@@ -8,13 +8,32 @@ Constraints:
 
 Note: The list is intended to be edited over time. Treat this file as the single source of truth for what to fetch.
 
-## Tech
+## Tech: AI & Regulation
+
+- NIST Information Technology: `https://www.nist.gov/news-events/information%20technology/rss.xml`
+- OpenAI News: `https://openai.com/news/rss.xml`
+
+## Tech: Embodied Intelligence & Robotics
+
+- NSF News: `https://www.nsf.gov/rss/rss_www_news.xml`
+- IEEE Spectrum Robotics: `https://spectrum.ieee.org/rss/robotics/fulltext`
+
+## Tech: Biotech
+
+- Nature Biotechnology: `https://www.nature.com/nbt.rss`
+- Fierce Biotech: `https://www.fiercebiotech.com/rss/biotech`
+
+## Tech: Space & Drones
 
 - NASA Technology: `https://www.nasa.gov/technology/feed/`
 - JPL News: `https://www.jpl.nasa.gov/feeds/news/`
-- NSF News: `https://www.nsf.gov/rss/rss_www_news.xml`
-- NIST Information Technology: `https://www.nist.gov/news-events/information%20technology/rss.xml`
-- NASA Aeronautics: `https://www.nasa.gov/aeronautics/feed/`
+- SpaceNews: `https://spacenews.com/feed/`
+- sUAS News: `https://www.suasnews.com/feed/`
+
+## Tech: Spatial Computing
+
+- Mixed News: `https://mixed-news.com/en/feed/`
+- Road to VR: `https://www.roadtovr.com/feed/`
 
 ## Finance
 
