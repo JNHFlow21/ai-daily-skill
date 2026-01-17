@@ -1,6 +1,6 @@
 ---
 name: techfi-generate
-description: Generates TechFiDaily content only (no publishing). Fetches English hot news via stable RSS sources across 8 sections (Tech-AI, Tech-Embodied, Tech-Biotech, Tech-Space, Tech-Spatial, Finance, Geopolitics, Crypto), dedupes and selects Top 5 per section, then uses DeepSeek LLM to produce easy-to-read Chinese explanations +点评 and optional image_url. Also generates a cross-section butterfly-effect insight. Outputs a single JSON artifact at artifacts/techfi-daily/latest.json. Trigger when user asks to generate TechFiDaily / daily news content.
+description: Generates TechFiDaily content only (no publishing). Fetches English hot news via stable RSS sources across 9 sections (Tech-AI, Tech-Embodied, Tech-Biotech, Tech-Space, Tech-Drones, Tech-Spatial, Finance, Geopolitics, Crypto), dedupes and selects Top 5 per section, then uses DeepSeek LLM to produce easy-to-read Chinese explanations +点评 and optional image_url. Also generates a cross-section butterfly-effect insight. Outputs a single JSON artifact at artifacts/techfi-daily/latest.json. Trigger when user asks to generate TechFiDaily / daily news content.
 ---
 
 # TechFiDaily Generate
@@ -109,7 +109,8 @@ If the batch output is malformed, item count mismatches, or the section only has
 
 Rules:
 - Prefer RSS media fields (media:content / media:thumbnail / enclosure).
-- If missing, fetch article page and read `og:image` / `twitter:image`.
+- If the URL is a Google News redirect, resolve to the real article and read `og:image`.
+- Ignore Google icon/favicon images; if the og image is a Google asset, treat as missing.
 - If still missing, leave `image_url` empty.
 
 ## Step 9: Build Telegram payloads (but do not send)

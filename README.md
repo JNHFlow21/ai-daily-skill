@@ -1,6 +1,6 @@
 # TechFiDaily
 
-Daily news pipeline that generates Tech/Finance/Geopolitics/Crypto briefs from English sources and publishes to Telegram + Lark Bitable.
+Daily news pipeline that generates AI + Web3 focused briefs from English sources and publishes to Telegram + Lark Bitable.
 
 ## Repo layout
 
@@ -33,17 +33,21 @@ python scripts/techfi_publish.py
 
 ## Default behavior
 
-- Content date: yesterday (Beijing time)
+- Content window: rolling past 24 hours (Beijing time); `content_date_bj` is today
 - Output: JSON only (`artifacts/techfi-daily/latest.json`)
-- Telegram: update the same 5 messages (main + 4 sections)
+- Sections (Top 5 each):
+  - AI / 具身智能 / 生物科技 / 太空探索 / 无人机 / 空间计算
+  - 金融 / 地缘政治 / 加密
+- Telegram: main summary + butterfly insight + per-item messages (each item can include an image)
 - Lark: single Daily table row per content date
 
 ## GitHub Secrets
 
 Set these in repo secrets before enabling the workflow:
 
-- `GEMINI_API_KEY`
-- `GEMINI_API_BASE` (optional)
+- `DEEPSEEK_API_KEY`
+- `DEEPSEEK_MODEL` (optional, default `deepseek-chat`)
+- `DEEPSEEK_API_BASE` (optional, default `https://api.deepseek.com`)
 - `TG_BOT_TOKEN`
 - `TG_CHAT_ID`
 - `LARK_APP_ID`
@@ -53,5 +57,5 @@ Set these in repo secrets before enabling the workflow:
 
 ## Notes
 
-- Gemini model default: `gemini-3-flash-preview`
+- LLM default: `deepseek-chat`
 - Hacker News is used for hotness signal only (not final citations)
