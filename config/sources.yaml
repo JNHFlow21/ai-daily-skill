@@ -7,6 +7,18 @@ sections:
       - name: smol.ai News
         url: https://news.smol.ai/rss.xml
         type: rss
+      - name: OpenAI News
+        url: https://openai.com/news/rss.xml
+        type: rss
+      - name: TechCrunch AI
+        url: https://techcrunch.com/category/artificial-intelligence/feed/
+        type: rss
+      - name: The Verge AI
+        url: https://www.theverge.com/ai-artificial-intelligence/rss/index.xml
+        type: rss
+      - name: VentureBeat AI
+        url: https://feeds.venturebeat.com/ai
+        type: rss
 
   tech_embodied:
     primary_sources:
@@ -16,14 +28,29 @@ sections:
       - name: IEEE Spectrum Robotics
         url: https://spectrum.ieee.org/rss/robotics/fulltext
         type: rss
+      - name: The Robot Report
+        url: https://www.therobotreport.com/feed/
+        type: rss
+      - name: Robotics Business Review
+        url: https://www.roboticsbusinessreview.com/feed/
+        type: rss
+      - name: TechCrunch Robotics
+        url: https://techcrunch.com/tag/robotics/feed/
+        type: rss
 
   tech_biotech:
     primary_sources:
       - name: Nature Biotechnology
         url: https://www.nature.com/nbt.rss
         type: rss
-      - name: Fierce Biotech
-        url: https://www.fiercebiotech.com/rss/biotech
+      - name: BioPharma Dive
+        url: https://www.biopharmadive.com/feeds/news/
+        type: rss
+      - name: GEN (Genetic Engineering & Biotech News)
+        url: https://feeds.feedburner.com/genengnews
+        type: rss
+      - name: STAT News
+        url: https://www.statnews.com/feed/
         type: rss
 
   tech_space:
@@ -37,8 +64,11 @@ sections:
       - name: SpaceNews
         url: https://spacenews.com/feed/
         type: rss
-      - name: sUAS News
-        url: https://www.suasnews.com/feed/
+      - name: Space.com
+        url: https://www.space.com/feeds/all
+        type: rss
+      - name: NASA Aeronautics
+        url: https://www.nasa.gov/aeronautics/feed/
         type: rss
 
   tech_spatial:
@@ -48,6 +78,9 @@ sections:
         type: rss
       - name: Road to VR
         url: https://www.roadtovr.com/feed/
+        type: rss
+      - name: UploadVR
+        url: https://uploadvr.com/feed/
         type: rss
 
   finance:
@@ -79,14 +112,20 @@ sections:
       - name: SIPRI Combined
         url: https://www.sipri.org/rss/combined.xml
         type: rss
-      - name: RUSI Research
-        url: https://rusi.org/rss.xml?ids=1179
+      - name: UN News
+        url: https://news.un.org/feed/subscribe/en/news/all/rss.xml
         type: rss
-      - name: RUSI Commentary
-        url: https://rusi.org/rss.xml?ids=1180
+      - name: NATO News
+        url: https://www.nato.int/cps/en/natohq/rss
         type: rss
-      - name: RUSI Latest
-        url: https://rusi.org/rss.xml?ids=1181
+      - name: U.S. State Department
+        url: https://www.state.gov/feed/
+        type: rss
+      - name: CSIS All Content
+        url: https://www.csis.org/feeds/all-content
+        type: rss
+      - name: Council on Foreign Relations
+        url: https://www.cfr.org/rss
         type: rss
 
   crypto:

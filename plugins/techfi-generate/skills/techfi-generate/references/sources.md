@@ -11,28 +11,39 @@ Note: The list is intended to be edited over time. Treat this file as the single
 ## Tech: AI
 
 - smol.ai News: `https://news.smol.ai/rss.xml`
+- OpenAI News: `https://openai.com/news/rss.xml`
+- TechCrunch AI: `https://techcrunch.com/category/artificial-intelligence/feed/`
+- The Verge AI: `https://www.theverge.com/ai-artificial-intelligence/rss/index.xml`
+- VentureBeat AI: `https://feeds.venturebeat.com/ai`
 
 ## Tech: Embodied Intelligence & Robotics
 
 - NSF News: `https://www.nsf.gov/rss/rss_www_news.xml`
 - IEEE Spectrum Robotics: `https://spectrum.ieee.org/rss/robotics/fulltext`
+- The Robot Report: `https://www.therobotreport.com/feed/`
+- Robotics Business Review: `https://www.roboticsbusinessreview.com/feed/`
+- TechCrunch Robotics: `https://techcrunch.com/tag/robotics/feed/`
 
 ## Tech: Biotech
 
 - Nature Biotechnology: `https://www.nature.com/nbt.rss`
-- Fierce Biotech: `https://www.fiercebiotech.com/rss/biotech`
+- BioPharma Dive: `https://www.biopharmadive.com/feeds/news/`
+- GEN (Genetic Engineering & Biotech News): `https://feeds.feedburner.com/genengnews`
+- STAT News: `https://www.statnews.com/feed/`
 
 ## Tech: Space & Drones
 
 - NASA Technology: `https://www.nasa.gov/technology/feed/`
 - JPL News: `https://www.jpl.nasa.gov/feeds/news/`
 - SpaceNews: `https://spacenews.com/feed/`
-- sUAS News: `https://www.suasnews.com/feed/`
+- Space.com: `https://www.space.com/feeds/all`
+- NASA Aeronautics: `https://www.nasa.gov/aeronautics/feed/`
 
 ## Tech: Spatial Computing
 
 - Mixed News: `https://mixed-news.com/en/feed/`
 - Road to VR: `https://www.roadtovr.com/feed/`
+- UploadVR: `https://uploadvr.com/feed/`
 
 ## Finance
 
@@ -47,9 +58,11 @@ Note: The list is intended to be edited over time. Treat this file as the single
 ## Geopolitics
 
 - SIPRI Combined: `https://www.sipri.org/rss/combined.xml`
-- RUSI Research: `https://rusi.org/rss.xml?ids=1179`
-- RUSI Commentary: `https://rusi.org/rss.xml?ids=1180`
-- RUSI Latest: `https://rusi.org/rss.xml?ids=1181`
+- UN News: `https://news.un.org/feed/subscribe/en/news/all/rss.xml`
+- NATO News: `https://www.nato.int/cps/en/natohq/rss`
+- U.S. State Department: `https://www.state.gov/feed/`
+- CSIS All Content: `https://www.csis.org/feeds/all-content`
+- Council on Foreign Relations: `https://www.cfr.org/rss`
 
 ## Crypto (Markets + Regulation)
 
