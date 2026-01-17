@@ -4,73 +4,57 @@
 sections:
   tech:
     primary_sources:
-      - name: BBC Technology
-        url: https://feeds.bbci.co.uk/news/technology/rss.xml
+      - name: NASA Technology
+        url: https://www.nasa.gov/technology/feed/
         type: rss
-      - name: Ars Technica (index)
-        url: https://arstechnica.com/rss-feeds/
-        type: index
-      - name: WIRED (index)
-        url: https://www.wired.com/about/rss-feeds/
-        type: index
-      - name: The Register (index)
-        url: https://www.theregister.com/Design/page/feeds.html
-        type: index
-    hot_signal_sources:
-      - name: Hacker News
-        url: https://news.ycombinator.com/rss
+      - name: JPL News
+        url: https://www.jpl.nasa.gov/feeds/news/
+        type: rss
+      - name: NSF News
+        url: https://www.nsf.gov/rss/rss_www_news.xml
+        type: rss
+      - name: NIST Information Technology
+        url: https://www.nist.gov/news-events/information%20technology/rss.xml
+        type: rss
+      - name: NASA Aeronautics
+        url: https://www.nasa.gov/aeronautics/feed/
         type: rss
 
   finance:
     primary_sources:
-      - name: BBC Business
-        url: https://feeds.bbci.co.uk/news/business/rss.xml
+      - name: Federal Reserve Press Releases
+        url: https://www.federalreserve.gov/feeds/press_all.xml
         type: rss
-      - name: CNBC (index)
-        url: https://www.cnbc.com/rss-feeds/
-        type: index
-      - name: MarketWatch Top Stories
-        url: https://feeds.marketwatch.com/marketwatch/topstories/
+      - name: Federal Reserve Speeches & Testimony
+        url: https://www.federalreserve.gov/feeds/speeches_and_testimony.xml
         type: rss
-      - name: Federal Reserve (index)
-        url: https://www.federalreserve.gov/feeds/feeds.htm
-        type: index
-      - name: ECB (index)
-        url: https://www.ecb.europa.eu/home/html/rss.ga.html
-        type: index
+      - name: BIS Press Releases
+        url: https://www.bis.org/doclist/all_pressrels.rss
+        type: rss
+      - name: BIS Central Bankers' Speeches
+        url: https://www.bis.org/doclist/cbspeeches.rss
+        type: rss
+      - name: EIA Today in Energy
+        url: https://www.eia.gov/rss/todayinenergy.xml
+        type: rss
 
   geo:
     primary_sources:
-      - name: BBC World
-        url: https://feeds.bbci.co.uk/news/world/rss.xml
+      - name: SIPRI Combined
+        url: https://www.sipri.org/rss/combined.xml
         type: rss
-      - name: The Guardian World
-        url: https://www.theguardian.com/world/rss
+      - name: Chatham House What's New
+        url: https://www.chathamhouse.org/path/whatsnew.xml
         type: rss
-      - name: Al Jazeera (all)
-        url: https://www.aljazeera.com/xml/rss/all.xml
+      - name: ECFR All Content
+        url: https://ecfr.eu/feed/
         type: rss
-      - name: UN News (entry)
-        url: https://news.un.org/en
-        type: index
-      - name: IAEA (index)
-        url: https://www.iaea.org/feeds
-        type: index
 
   crypto:
     primary_sources:
       - name: CoinDesk
         url: https://www.coindesk.com/arc/outboundfeeds/rss/
         type: rss
-      - name: DL News
-        url: https://www.dlnews.com/rss/
-        type: rss
-      - name: Cointelegraph (index)
-        url: https://cointelegraph.com/rss-feeds
-        type: index
       - name: SEC Press Releases
-        url: https://www.sec.gov/newsroom/press-releases
-        type: index
-      - name: CFTC (index)
-        url: https://www.cftc.gov/RSS/index.htm
-        type: index
+        url: https://www.sec.gov/news/pressreleases.rss
+        type: rss

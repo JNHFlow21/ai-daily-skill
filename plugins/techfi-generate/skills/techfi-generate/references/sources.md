@@ -10,33 +10,27 @@ Note: The list is intended to be edited over time. Treat this file as the single
 
 ## Tech
 
-- BBC Technology: `https://feeds.bbci.co.uk/news/technology/rss.xml`
-- Ars Technica RSS index: `https://arstechnica.com/rss-feeds/`
-- WIRED RSS index: `https://www.wired.com/about/rss-feeds/`
-- The Register RSS index: `https://www.theregister.com/Design/page/feeds.html`
-- Hacker News: `https://news.ycombinator.com/rss`
+- NASA Technology: `https://www.nasa.gov/technology/feed/`
+- JPL News: `https://www.jpl.nasa.gov/feeds/news/`
+- NSF News: `https://www.nsf.gov/rss/rss_www_news.xml`
+- NIST Information Technology: `https://www.nist.gov/news-events/information%20technology/rss.xml`
+- NASA Aeronautics: `https://www.nasa.gov/aeronautics/feed/`
 
 ## Finance
 
-- BBC Business: `https://feeds.bbci.co.uk/news/business/rss.xml`
-- CNBC RSS index: `https://www.cnbc.com/rss-feeds/`
-- MarketWatch Top Stories: `https://feeds.marketwatch.com/marketwatch/topstories/`
-- Federal Reserve RSS index: `https://www.federalreserve.gov/feeds/feeds.htm`
-- European Central Bank RSS index: `https://www.ecb.europa.eu/home/html/rss.ga.html`
+- Federal Reserve Press Releases: `https://www.federalreserve.gov/feeds/press_all.xml`
+- Federal Reserve Speeches & Testimony: `https://www.federalreserve.gov/feeds/speeches_and_testimony.xml`
+- BIS Press Releases: `https://www.bis.org/doclist/all_pressrels.rss`
+- BIS Central Bankers' Speeches: `https://www.bis.org/doclist/cbspeeches.rss`
+- EIA Today in Energy: `https://www.eia.gov/rss/todayinenergy.xml`
 
 ## Geopolitics
 
-- BBC World: `https://feeds.bbci.co.uk/news/world/rss.xml`
-- The Guardian World: `https://www.theguardian.com/world/rss`
-- Al Jazeera (all): `https://www.aljazeera.com/xml/rss/all.xml`
-- UN News (entry point; choose RSS from site if needed): `https://news.un.org/en`
-- IAEA feeds index: `https://www.iaea.org/feeds`
+- SIPRI Combined: `https://www.sipri.org/rss/combined.xml`
+- Chatham House What's New: `https://www.chathamhouse.org/path/whatsnew.xml`
+- ECFR All Content: `https://ecfr.eu/feed/`
 
 ## Crypto (Markets + Regulation)
 
 - CoinDesk RSS: `https://www.coindesk.com/arc/outboundfeeds/rss/`
-- DL News RSS: `https://www.dlnews.com/rss/`
-- Cointelegraph RSS index: `https://cointelegraph.com/rss-feeds`
-- SEC Press Releases: `https://www.sec.gov/newsroom/press-releases`
-- CFTC RSS index: `https://www.cftc.gov/RSS/index.htm`
-
+- SEC Press Releases: `https://www.sec.gov/news/pressreleases.rss`
