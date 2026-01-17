@@ -742,18 +742,12 @@ def main() -> int:
     client: Optional[LLMClient] = None
     if not args.no_llm:
         deepseek_key = os.getenv("DEEPSEEK_API_KEY")
-        if deepseek_key:
+        if not deepseek_key:
+            errors.append("DEEPSEEK_API_KEY is missing; falling back to no-llm mode")
+        else:
             model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
             api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
             client = DeepSeekClient(api_key=deepseek_key, model=model, api_base=api_base)
-        else:
-            api_key = os.getenv("GEMINI_API_KEY")
-            model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
-            api_base = os.getenv("GEMINI_API_BASE")
-            if not api_key:
-                errors.append("DEEPSEEK_API_KEY and GEMINI_API_KEY are missing; falling back to no-llm mode")
-            else:
-                client = GeminiClient(api_key=api_key, model=model, api_base=api_base)
 
     sections_output: Dict[str, Dict[str, Any]] = {}
     dedup_stats: Dict[str, Any] = {}

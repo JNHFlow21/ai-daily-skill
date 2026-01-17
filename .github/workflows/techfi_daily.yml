@@ -12,9 +12,6 @@ jobs:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       DEEPSEEK_MODEL: deepseek-chat
       DEEPSEEK_API_BASE: https://api.deepseek.com
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      GEMINI_MODEL: gemini-3-flash-preview
-      GEMINI_API_BASE: ${{ secrets.GEMINI_API_BASE }}
       TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
       TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       LARK_APP_ID: ${{ secrets.LARK_APP_ID }}

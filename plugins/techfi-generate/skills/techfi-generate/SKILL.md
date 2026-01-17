@@ -1,6 +1,6 @@
 ---
 name: techfi-generate
-description: Generates TechFiDaily content only (no publishing). Fetches English hot news via stable RSS sources across 4 sections (Tech, Finance, Geopolitics, Crypto), dedupes and selects Top 5 per section, then uses LLM to produce easy-to-read Chinese explanations +点评 and optional image_url. Outputs a single JSON artifact at artifacts/techfi-daily/latest.json. Trigger when user asks to generate TechFiDaily / daily news content.
+description: Generates TechFiDaily content only (no publishing). Fetches English hot news via stable RSS sources across 4 sections (Tech, Finance, Geopolitics, Crypto), dedupes and selects Top 5 per section, then uses DeepSeek LLM to produce easy-to-read Chinese explanations +点评 and optional image_url. Outputs a single JSON artifact at artifacts/techfi-daily/latest.json. Trigger when user asks to generate TechFiDaily / daily news content.
 ---
 
 # TechFiDaily Generate
