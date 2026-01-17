@@ -13,8 +13,7 @@ Note: The list is intended to be edited over time. Treat this file as the single
 - smol.ai News: `https://news.smol.ai/rss.xml`
 - OpenAI News: `https://openai.com/news/rss.xml`
 - TechCrunch AI: `https://techcrunch.com/category/artificial-intelligence/feed/`
-- The Verge AI: `https://www.theverge.com/ai-artificial-intelligence/rss/index.xml`
-- VentureBeat AI: `https://feeds.venturebeat.com/ai`
+- Google News AI: `https://news.google.com/rss/search?q=artificial%20intelligence&hl=en-US&gl=US&ceid=US:en`
 
 ## Tech: Embodied Intelligence & Robotics
 
@@ -28,8 +27,9 @@ Note: The list is intended to be edited over time. Treat this file as the single
 
 - Nature Biotechnology: `https://www.nature.com/nbt.rss`
 - BioPharma Dive: `https://www.biopharmadive.com/feeds/news/`
-- GEN (Genetic Engineering & Biotech News): `https://feeds.feedburner.com/genengnews`
 - STAT News: `https://www.statnews.com/feed/`
+- News-Medical Genetics: `https://www.news-medical.net/tag/feed/Genetics`
+- Google News Biotech: `https://news.google.com/rss/search?q=biotechnology%20OR%20gene%20therapy&hl=en-US&gl=US&ceid=US:en`
 
 ## Tech: Space & Drones
 
@@ -59,10 +59,9 @@ Note: The list is intended to be edited over time. Treat this file as the single
 
 - SIPRI Combined: `https://www.sipri.org/rss/combined.xml`
 - UN News: `https://news.un.org/feed/subscribe/en/news/all/rss.xml`
-- NATO News: `https://www.nato.int/cps/en/natohq/rss`
 - U.S. State Department: `https://www.state.gov/feed/`
-- CSIS All Content: `https://www.csis.org/feeds/all-content`
-- Council on Foreign Relations: `https://www.cfr.org/rss`
+- Foreign Policy: `https://foreignpolicy.com/feed/`
+- Google News Geopolitics: `https://news.google.com/rss/search?q=geopolitics%20OR%20sanctions%20OR%20conflict&hl=en-US&gl=US&ceid=US:en`
 
 ## Crypto (Markets + Regulation)
 

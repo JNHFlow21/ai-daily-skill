@@ -13,11 +13,8 @@ sections:
       - name: TechCrunch AI
         url: https://techcrunch.com/category/artificial-intelligence/feed/
         type: rss
-      - name: The Verge AI
-        url: https://www.theverge.com/ai-artificial-intelligence/rss/index.xml
-        type: rss
-      - name: VentureBeat AI
-        url: https://feeds.venturebeat.com/ai
+      - name: Google News AI
+        url: https://news.google.com/rss/search?q=artificial%20intelligence&hl=en-US&gl=US&ceid=US:en
         type: rss
 
   tech_embodied:
@@ -46,11 +43,14 @@ sections:
       - name: BioPharma Dive
         url: https://www.biopharmadive.com/feeds/news/
         type: rss
-      - name: GEN (Genetic Engineering & Biotech News)
-        url: https://feeds.feedburner.com/genengnews
-        type: rss
       - name: STAT News
         url: https://www.statnews.com/feed/
+        type: rss
+      - name: News-Medical Genetics
+        url: https://www.news-medical.net/tag/feed/Genetics
+        type: rss
+      - name: Google News Biotech
+        url: https://news.google.com/rss/search?q=biotechnology%20OR%20gene%20therapy&hl=en-US&gl=US&ceid=US:en
         type: rss
 
   tech_space:
@@ -115,17 +115,14 @@ sections:
       - name: UN News
         url: https://news.un.org/feed/subscribe/en/news/all/rss.xml
         type: rss
-      - name: NATO News
-        url: https://www.nato.int/cps/en/natohq/rss
-        type: rss
       - name: U.S. State Department
         url: https://www.state.gov/feed/
         type: rss
-      - name: CSIS All Content
-        url: https://www.csis.org/feeds/all-content
+      - name: Foreign Policy
+        url: https://foreignpolicy.com/feed/
         type: rss
-      - name: Council on Foreign Relations
-        url: https://www.cfr.org/rss
+      - name: Google News Geopolitics
+        url: https://news.google.com/rss/search?q=geopolitics%20OR%20sanctions%20OR%20conflict&hl=en-US&gl=US&ceid=US:en
         type: rss
 
   crypto:

@@ -85,13 +85,14 @@ KEYWORDS_BY_SECTION = {
 
 TIER_A = [
     "SEC", "CFTC", "Federal Reserve", "ECB", "BIS", "EIA", "FSB",
-    "UN", "IAEA", "NASA", "JPL", "NIST", "NSF", "OpenAI", "State Department", "NATO"
+    "UN", "IAEA", "NASA", "JPL", "NIST", "NSF", "OpenAI", "State Department"
 ]
 TIER_B = [
     "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
     "Mixed", "Road to VR", "smol", "SIPRI", "RUSI", "CSIS", "CFR",
-    "TechCrunch", "VentureBeat", "The Verge", "STAT", "BioPharma Dive",
-    "GEN", "Robot Report", "Robotics Business Review", "UploadVR", "Space.com"
+    "TechCrunch", "STAT", "BioPharma Dive",
+    "Robot Report", "Robotics Business Review", "UploadVR", "Space.com",
+    "Foreign Policy", "News-Medical"
 ]
 
 TRACKING_PARAMS = {
