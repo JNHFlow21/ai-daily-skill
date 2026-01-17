@@ -109,6 +109,9 @@ sections:
       - name: Google News Macro
         url: https://news.google.com/rss/search?q=macro%20economy%20OR%20inflation%20OR%20central%20bank%20OR%20bond%20yield%20OR%20oil%20OR%20gold%20OR%20copper&hl=en-US&gl=US&ceid=US:en
         type: rss
+      - name: Google News Markets
+        url: https://news.google.com/rss/search?q=stock%20market%20OR%20equities%20OR%20S%26P%20500%20OR%20Treasury%20yield%20OR%20credit%20spread&hl=en-US&gl=US&ceid=US:en
+        type: rss
 
   geo:
     primary_sources:
