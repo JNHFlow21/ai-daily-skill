@@ -81,7 +81,8 @@ Use a simple, stable scoring recipe (see `references/scoring-and-dedup.md`):
 - Source tier weight
 - Keyword weight (e.g., sanctions / CPI / ETF / lawsuit / rate hike / hack)
 
-Select Top 5 clusters per section.
+Select Top 5 clusters per section. If same-day items are fewer than 5, backfill
+with the most recent items within the last 7 days.
 
 ## Step 6: Generate Chinese explanations (fixed structure)
 
@@ -107,7 +108,7 @@ Rules:
 
 Generate 5 message payloads that `techfi-publish` can upsert:
 - `main`: title + highlights + section list + counts
-- `tech`, `finance`, `geo`, `crypto`: each contains exactly 5 items with Chinese explanation + source link
+- `tech`, `finance`, `geo`, `crypto`: each contains up to 5 items with Chinese explanation + source link
 
 Important:
 - Telegram single message length limit exists; keep each message compact and designed to be editable.

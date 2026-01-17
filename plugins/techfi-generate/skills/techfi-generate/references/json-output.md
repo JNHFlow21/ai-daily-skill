@@ -41,7 +41,7 @@ It must be sufficient for:
 }
 ```
 
-## Item shape (each section has exactly 5 items when possible)
+## Item shape (each section has up to 5 items; backfill within 7 days if same-day is insufficient)
 
 ```json
 {

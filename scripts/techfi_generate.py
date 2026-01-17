@@ -63,6 +63,23 @@ TRACKING_PARAMS = {
     "ref", "source", "spm", "fbclid", "gclid"
 }
 
+TZINFOS = {
+    "UTC": 0,
+    "GMT": 0,
+    "UT": 0,
+    "EST": -5 * 3600,
+    "EDT": -4 * 3600,
+    "CST": -6 * 3600,
+    "CDT": -5 * 3600,
+    "MST": -7 * 3600,
+    "MDT": -6 * 3600,
+    "PST": -8 * 3600,
+    "PDT": -7 * 3600,
+    "CET": 1 * 3600,
+    "CEST": 2 * 3600,
+    "BST": 1 * 3600,
+}
+
 
 @dataclass
 class Item:
@@ -267,7 +284,7 @@ def fetch_feed(url: str) -> feedparser.FeedParserDict:
 def parse_datetime(value: Optional[str], fallback_struct: Optional[Any]) -> Optional[dt.datetime]:
     if value:
         try:
-            parsed = dateparser.parse(value)
+            parsed = dateparser.parse(value, tzinfos=TZINFOS)
             if parsed is None:
                 return None
             if parsed.tzinfo is None:
@@ -445,21 +462,34 @@ def resolve_image_url(item: Item) -> Optional[str]:
 
 def filter_by_date(items: List[Item], content_date_bj: str) -> List[Item]:
     tz_bj = ZoneInfo("Asia/Shanghai")
-    results = []
+    content_date = dt.date.fromisoformat(content_date_bj)
+    same_day: List[Item] = []
+    undated: List[Item] = []
+    dated: List[Tuple[dt.date, Item]] = []
     for item in items:
         if not item.published_at:
-            results.append(item)
+            undated.append(item)
             continue
-        try:
-            published_dt = dateparser.parse(item.published_at)
-        except Exception:
-            results.append(item)
+        published_dt = parse_datetime(item.published_at, None)
+        if not published_dt:
+            undated.append(item)
             continue
-        if published_dt.tzinfo is None:
-            published_dt = published_dt.replace(tzinfo=dt.timezone.utc)
-        published_bj = published_dt.astimezone(tz_bj).date().isoformat()
-        if published_bj == content_date_bj:
+        published_bj = published_dt.astimezone(tz_bj).date()
+        if published_bj == content_date:
+            same_day.append(item)
+        else:
+            dated.append((published_bj, item))
+    results = same_day + undated
+    if len(results) >= MAX_ITEMS_PER_SECTION:
+        return results
+    dated.sort(key=lambda pair: pair[0], reverse=True)
+    for published_bj, item in dated:
+        if published_bj > content_date:
+            continue
+        if (content_date - published_bj).days <= 7:
             results.append(item)
+        if len(results) >= MAX_ITEMS_PER_SECTION:
+            break
     return results
 
 

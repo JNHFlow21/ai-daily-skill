@@ -238,6 +238,51 @@ def limit_caption(text: str, limit: int = 900) -> str:
     return "\n".join(lines) + "\n..."
 
 
+def send_with_fallback(
+    telegram_client: TelegramClient,
+    key_text: str,
+    text_html: str,
+    image_url: Optional[str],
+    existing_ids: Dict[str, int],
+    errors: List[str],
+) -> Optional[int]:
+    has_image = image_url and str(image_url).startswith(("http://", "https://"))
+    if has_image:
+        if key_text in existing_ids:
+            try:
+                telegram_client.edit_photo(existing_ids[key_text], str(image_url), text_html)
+                return existing_ids[key_text]
+            except Exception:
+                try:
+                    return telegram_client.send_message(text_html)
+                except Exception as exc:
+                    errors.append(f"Telegram item {key_text} failed: {exc}")
+                    return None
+        try:
+            return telegram_client.send_photo(str(image_url), text_html)
+        except Exception:
+            try:
+                return telegram_client.send_message(text_html)
+            except Exception as exc:
+                errors.append(f"Telegram item {key_text} failed: {exc}")
+                return None
+    if key_text in existing_ids:
+        try:
+            telegram_client.edit_message(existing_ids[key_text], text_html)
+            return existing_ids[key_text]
+        except Exception:
+            try:
+                return telegram_client.send_message(text_html)
+            except Exception as exc:
+                errors.append(f"Telegram item {key_text} failed: {exc}")
+                return None
+    try:
+        return telegram_client.send_message(text_html)
+    except Exception as exc:
+        errors.append(f"Telegram item {key_text} failed: {exc}")
+        return None
+
+
 def parse_tg_message_ids(value: Optional[str]) -> Dict[str, int]:
     if not value:
         return {}
@@ -359,26 +404,16 @@ def main() -> int:
                     text_html = limit_caption(
                         render_item_html(section_titles[section], content_date_bj, idx, item)
                     )
-                    image_url = item.get("image_url")
-                    has_image = image_url and str(image_url).startswith(("http://", "https://"))
-                    if has_image:
-                        if key_text in existing_ids:
-                            try:
-                                telegram_client.edit_photo(existing_ids[key_text], image_url, text_html)
-                                tg_message_ids[key_text] = existing_ids[key_text]
-                            except Exception:
-                                tg_message_ids[key_text] = telegram_client.send_photo(image_url, text_html)
-                        else:
-                            tg_message_ids[key_text] = telegram_client.send_photo(image_url, text_html)
-                    else:
-                        if key_text in existing_ids:
-                            try:
-                                telegram_client.edit_message(existing_ids[key_text], text_html)
-                                tg_message_ids[key_text] = existing_ids[key_text]
-                            except Exception:
-                                tg_message_ids[key_text] = telegram_client.send_message(text_html)
-                        else:
-                            tg_message_ids[key_text] = telegram_client.send_message(text_html)
+                    message_id = send_with_fallback(
+                        telegram_client,
+                        key_text,
+                        text_html,
+                        item.get("image_url"),
+                        existing_ids,
+                        errors,
+                    )
+                    if message_id:
+                        tg_message_ids[key_text] = message_id
                     time.sleep(0.2)
 
             telegram_ok = True
