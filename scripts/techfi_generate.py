@@ -92,7 +92,7 @@ TIER_B = [
     "Mixed", "Road to VR", "smol", "SIPRI", "RUSI", "CSIS", "CFR",
     "TechCrunch", "STAT", "BioPharma Dive",
     "Robot Report", "Robotics Business Review", "UploadVR", "Space.com",
-    "Foreign Policy", "News-Medical"
+    "Foreign Policy", "Google News"
 ]
 
 TRACKING_PARAMS = {

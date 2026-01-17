@@ -46,9 +46,6 @@ sections:
       - name: STAT News
         url: https://www.statnews.com/feed/
         type: rss
-      - name: News-Medical Genetics
-        url: https://www.news-medical.net/tag/feed/Genetics
-        type: rss
       - name: Google News Biotech
         url: https://news.google.com/rss/search?q=biotechnology%20OR%20gene%20therapy&hl=en-US&gl=US&ceid=US:en
         type: rss
@@ -82,6 +79,9 @@ sections:
       - name: UploadVR
         url: https://uploadvr.com/feed/
         type: rss
+      - name: Google News Spatial Computing
+        url: https://news.google.com/rss/search?q=spatial%20computing%20OR%20mixed%20reality%20OR%20VR%20OR%20AR&hl=en-US&gl=US&ceid=US:en
+        type: rss
 
   finance:
     primary_sources:
@@ -105,6 +105,9 @@ sections:
         type: rss
       - name: EIA Today in Energy
         url: https://www.eia.gov/rss/todayinenergy.xml
+        type: rss
+      - name: Google News Macro
+        url: https://news.google.com/rss/search?q=central%20bank%20OR%20inflation%20OR%20bond%20yield%20OR%20recession&hl=en-US&gl=US&ceid=US:en
         type: rss
 
   geo:
