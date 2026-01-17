@@ -160,18 +160,25 @@ class DeepSeekClient:
         response_schema: Optional[Dict[str, Any]] = None,
     ) -> str:
         url = f"{self.api_base}/chat/completions"
+        messages = []
+        if response_mime_type == "application/json":
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "Return only valid JSON. Do not include markdown or extra text.",
+                }
+            )
+        messages.append({"role": "user", "content": prompt})
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
         payload: Dict[str, Any] = {
             "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "temperature": 0.2,
             "max_tokens": max_tokens,
         }
-        if response_mime_type == "application/json":
-            payload["response_format"] = {"type": "json_object"}
         last_error: Optional[Exception] = None
         for attempt in range(5):
             try:

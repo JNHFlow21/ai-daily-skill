@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import html
+import time
 import json
 import os
 import sys
@@ -223,6 +224,15 @@ def limit_message(text: str, limit: int = 3800) -> str:
     return "\n".join(lines) + "\n..."
 
 
+def limit_caption(text: str, limit: int = 900) -> str:
+    if len(text) <= limit:
+        return text
+    lines = text.split("\n")
+    while lines and len("\n".join(lines)) > limit - 20:
+        lines.pop()
+    return "\n".join(lines) + "\n..."
+
+
 def parse_tg_message_ids(value: Optional[str]) -> Dict[str, int]:
     if not value:
         return {}
@@ -341,29 +351,30 @@ def main() -> int:
                 items = sections.get(section, {}).get("items", [])
                 for idx, item in enumerate(items, start=1):
                     key_text = f"{section}-{idx}"
-                    text_html = limit_message(
+                    text_html = limit_caption(
                         render_item_html(section_titles[section], content_date_bj, idx, item)
                     )
-                    if key_text in existing_ids:
-                        try:
-                            telegram_client.edit_message(existing_ids[key_text], text_html)
-                            tg_message_ids[key_text] = existing_ids[key_text]
-                        except Exception:
-                            tg_message_ids[key_text] = telegram_client.send_message(text_html)
-                    else:
-                        tg_message_ids[key_text] = telegram_client.send_message(text_html)
-
                     image_url = item.get("image_url")
-                    if image_url and str(image_url).startswith(("http://", "https://")):
-                        key_img = f"{section}-{idx}-img"
-                        if key_img in existing_ids:
+                    has_image = image_url and str(image_url).startswith(("http://", "https://"))
+                    if has_image:
+                        if key_text in existing_ids:
                             try:
-                                telegram_client.edit_photo(existing_ids[key_img], image_url)
-                                tg_message_ids[key_img] = existing_ids[key_img]
+                                telegram_client.edit_photo(existing_ids[key_text], image_url, text_html)
+                                tg_message_ids[key_text] = existing_ids[key_text]
                             except Exception:
-                                tg_message_ids[key_img] = telegram_client.send_photo(image_url)
+                                tg_message_ids[key_text] = telegram_client.send_photo(image_url, text_html)
                         else:
-                            tg_message_ids[key_img] = telegram_client.send_photo(image_url)
+                            tg_message_ids[key_text] = telegram_client.send_photo(image_url, text_html)
+                    else:
+                        if key_text in existing_ids:
+                            try:
+                                telegram_client.edit_message(existing_ids[key_text], text_html)
+                                tg_message_ids[key_text] = existing_ids[key_text]
+                            except Exception:
+                                tg_message_ids[key_text] = telegram_client.send_message(text_html)
+                        else:
+                            tg_message_ids[key_text] = telegram_client.send_message(text_html)
+                    time.sleep(0.2)
 
             telegram_ok = True
         except Exception as exc:
