@@ -84,12 +84,12 @@ KEYWORDS_BY_SECTION = {
 }
 
 TIER_A = [
-    "SEC", "CFTC", "Federal Reserve", "ECB", "BIS", "EIA",
+    "SEC", "CFTC", "Federal Reserve", "ECB", "BIS", "EIA", "FSB",
     "UN", "IAEA", "NASA", "JPL", "NIST", "NSF", "OpenAI"
 ]
 TIER_B = [
     "BBC", "Guardian", "Al Jazeera", "Nature", "IEEE", "SpaceNews",
-    "Fierce", "Mixed", "Road to VR", "sUAS", "smol"
+    "Fierce", "Mixed", "Road to VR", "sUAS", "smol", "SIPRI", "RUSI"
 ]
 
 TRACKING_PARAMS = {

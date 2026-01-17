@@ -38,6 +38,8 @@ Note: The list is intended to be edited over time. Treat this file as the single
 
 - Federal Reserve Press Releases: `https://www.federalreserve.gov/feeds/press_all.xml`
 - Federal Reserve Speeches & Testimony: `https://www.federalreserve.gov/feeds/speeches_and_testimony.xml`
+- Financial Stability Board Press Releases: `https://www.fsb.org/wordpress/content_type/press-releases/feed/`
+- Financial Stability Board G20 Reports: `https://www.fsb.org/wordpress/content_type/reports-to-the-g20/feed/`
 - BIS Press Releases: `https://www.bis.org/doclist/all_pressrels.rss`
 - BIS Central Bankers' Speeches: `https://www.bis.org/doclist/cbspeeches.rss`
 - EIA Today in Energy: `https://www.eia.gov/rss/todayinenergy.xml`
@@ -45,8 +47,9 @@ Note: The list is intended to be edited over time. Treat this file as the single
 ## Geopolitics
 
 - SIPRI Combined: `https://www.sipri.org/rss/combined.xml`
-- Chatham House What's New: `https://www.chathamhouse.org/path/whatsnew.xml`
-- ECFR All Content: `https://ecfr.eu/feed/`
+- RUSI Research: `https://rusi.org/rss.xml?ids=1179`
+- RUSI Commentary: `https://rusi.org/rss.xml?ids=1180`
+- RUSI Latest: `https://rusi.org/rss.xml?ids=1181`
 
 ## Crypto (Markets + Regulation)
 

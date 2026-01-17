@@ -58,6 +58,12 @@ sections:
       - name: Federal Reserve Speeches & Testimony
         url: https://www.federalreserve.gov/feeds/speeches_and_testimony.xml
         type: rss
+      - name: Financial Stability Board Press Releases
+        url: https://www.fsb.org/wordpress/content_type/press-releases/feed/
+        type: rss
+      - name: Financial Stability Board G20 Reports
+        url: https://www.fsb.org/wordpress/content_type/reports-to-the-g20/feed/
+        type: rss
       - name: BIS Press Releases
         url: https://www.bis.org/doclist/all_pressrels.rss
         type: rss
@@ -73,11 +79,14 @@ sections:
       - name: SIPRI Combined
         url: https://www.sipri.org/rss/combined.xml
         type: rss
-      - name: Chatham House What's New
-        url: https://www.chathamhouse.org/path/whatsnew.xml
+      - name: RUSI Research
+        url: https://rusi.org/rss.xml?ids=1179
         type: rss
-      - name: ECFR All Content
-        url: https://ecfr.eu/feed/
+      - name: RUSI Commentary
+        url: https://rusi.org/rss.xml?ids=1180
+        type: rss
+      - name: RUSI Latest
+        url: https://rusi.org/rss.xml?ids=1181
         type: rss
 
   crypto:
