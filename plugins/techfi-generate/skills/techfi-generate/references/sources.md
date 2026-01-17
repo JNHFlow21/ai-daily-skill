@@ -43,7 +43,7 @@ Note: The list is intended to be edited over time. Treat this file as the single
 - Mixed News: `https://mixed-news.com/en/feed/`
 - Road to VR: `https://www.roadtovr.com/feed/`
 - UploadVR: `https://uploadvr.com/feed/`
-- Google News Spatial Computing: `https://news.google.com/rss/search?q=spatial%20computing%20OR%20mixed%20reality%20OR%20VR%20OR%20AR&hl=en-US&gl=US&ceid=US:en`
+- Google News Spatial Computing: `https://news.google.com/rss/search?q=virtual%20reality%20OR%20augmented%20reality%20OR%20mixed%20reality%20OR%20XR%20OR%20headset&hl=en-US&gl=US&ceid=US:en`
 
 ## Finance
 
@@ -54,7 +54,7 @@ Note: The list is intended to be edited over time. Treat this file as the single
 - BIS Press Releases: `https://www.bis.org/doclist/all_pressrels.rss`
 - BIS Central Bankers' Speeches: `https://www.bis.org/doclist/cbspeeches.rss`
 - EIA Today in Energy: `https://www.eia.gov/rss/todayinenergy.xml`
-- Google News Macro: `https://news.google.com/rss/search?q=central%20bank%20OR%20inflation%20OR%20bond%20yield%20OR%20recession&hl=en-US&gl=US&ceid=US:en`
+- Google News Macro: `https://news.google.com/rss/search?q=macro%20economy%20OR%20inflation%20OR%20central%20bank%20OR%20bond%20yield%20OR%20oil%20OR%20gold%20OR%20copper&hl=en-US&gl=US&ceid=US:en`
 
 ## Geopolitics
 
