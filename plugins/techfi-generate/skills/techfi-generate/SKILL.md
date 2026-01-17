@@ -62,13 +62,17 @@ For each RSS entry, extract:
 
 ## Step 4: Deduplicate & cluster
 
-Goal: avoid repeating the same story across multiple outlets.
+Goal: avoid repeating the same story across multiple outlets and sections.
 
 Minimum viable rules:
 - Exact same `url` ⇒ same item.
 - Highly similar titles ⇒ same cluster (see `references/scoring-and-dedup.md`).
 
 Pick one “primary link” per cluster (highest score / most authoritative).
+
+Cross-section rule:
+- If the same story appears in multiple sections, keep it only in the first section
+  (order: Tech → Finance → Geopolitics → Crypto).
 
 ## Step 5: Score hotness and pick Top 5
 

@@ -477,6 +477,13 @@ def build_clusters(items: List[Item]) -> List[List[Item]]:
     return clusters
 
 
+def is_duplicate_global(item: Item, selected: List[Item]) -> bool:
+    for existing in selected:
+        if is_same_cluster(item, existing):
+            return True
+    return False
+
+
 def extract_hot_signal_titles(items: List[Item]) -> List[str]:
     titles = []
     for item in items:
@@ -736,7 +743,7 @@ def main() -> int:
     if not args.no_llm:
         deepseek_key = os.getenv("DEEPSEEK_API_KEY")
         if deepseek_key:
-            model = os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner")
+            model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
             api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
             client = DeepSeekClient(api_key=deepseek_key, model=model, api_base=api_base)
         else:
@@ -751,6 +758,7 @@ def main() -> int:
     sections_output: Dict[str, Dict[str, Any]] = {}
     dedup_stats: Dict[str, Any] = {}
     selected_for_highlights: List[Dict[str, Any]] = []
+    global_selected: List[Item] = []
 
     for section, items in all_items.items():
         filtered = filter_by_date(items, content_date_bj)
@@ -771,9 +779,17 @@ def main() -> int:
             scored.append((score, primary, cluster))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        top_clusters = scored[:MAX_ITEMS_PER_SECTION]
         section_items: List[Dict[str, Any]] = []
-        primary_items = [primary for _, primary, _ in top_clusters]
+        primary_items: List[Item] = []
+        skipped_global_dup = 0
+        for _, primary, _ in scored:
+            if len(primary_items) >= MAX_ITEMS_PER_SECTION:
+                break
+            if is_duplicate_global(primary, global_selected):
+                skipped_global_dup += 1
+                continue
+            primary_items.append(primary)
+            global_selected.append(primary)
         explains: List[Dict[str, str]] = []
         if client is not None and primary_items:
             try:
@@ -804,6 +820,7 @@ def main() -> int:
             "filtered_count": len(filtered),
             "cluster_count": len(clusters),
             "selected": len(section_items),
+            "skipped_global_dup": skipped_global_dup,
         }
 
     if client is None:
