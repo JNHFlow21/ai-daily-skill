@@ -555,6 +555,24 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
     def is_explain_obj(value: Any) -> bool:
         return isinstance(value, dict) and explain_keys.issubset(value.keys())
 
+    def coerce_explain_list(value: Any) -> Optional[List[Dict[str, str]]]:
+        if isinstance(value, list):
+            return value  # caller will normalize
+        if isinstance(value, dict):
+            items_value = value.get("items")
+            if isinstance(items_value, list):
+                return items_value
+            if is_explain_obj(items_value):
+                return [items_value]
+            if is_explain_obj(value):
+                return [value]
+            if all(is_explain_obj(v) for v in value.values()):
+                return list(value.values())
+        return None
+
+    if len(items) == 1:
+        return [generate_explain(client, items[0])]
+
     lines = []
     for idx, item in enumerate(items, start=1):
         line = f"{idx}. {item.title_en} (Source: {item.source})"
@@ -599,18 +617,20 @@ def generate_explain_batch(client: LLMClient, items: List[Item]) -> List[Dict[st
         response_mime_type="application/json",
         response_schema=schema,
     )
-    parsed = safe_json_from_text(raw)
-    if isinstance(parsed, dict):
-        items_value = parsed.get("items")
-        if isinstance(items_value, list):
-            parsed = items_value
-        elif is_explain_obj(items_value):
-            parsed = [items_value]
-        elif is_explain_obj(parsed):
-            parsed = [parsed]
-    if not isinstance(parsed, list):
+    parsed_list = coerce_explain_list(safe_json_from_text(raw))
+    if not isinstance(parsed_list, list):
         raise RuntimeError("LLM batch output is not a list")
-    return parsed
+    normalized: List[Dict[str, str]] = []
+    for idx, value in enumerate(parsed_list):
+        if idx >= len(items):
+            break
+        if is_explain_obj(value):
+            normalized.append(value)
+        else:
+            normalized.append(fallback_explain(items[idx]))
+    while len(normalized) < len(items):
+        normalized.append(fallback_explain(items[len(normalized)]))
+    return normalized
 
 
 def generate_highlights(client: Optional[LLMClient], items: List[Dict[str, Any]]) -> List[str]:
@@ -651,22 +671,52 @@ def generate_highlights(client: Optional[LLMClient], items: List[Dict[str, Any]]
 
 
 def safe_json_from_text(text: str) -> Optional[Any]:
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\\s*|\\s*```$", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    match = re.search(r"\{.*\}", text, re.DOTALL)
+
+    def try_parse_substring(start: int, opening: str, closing: str) -> Optional[Any]:
+        depth = 0
+        for idx in range(start, len(text)):
+            ch = text[idx]
+            if ch == opening:
+                depth += 1
+            elif ch == closing:
+                depth -= 1
+                if depth == 0:
+                    snippet = text[start : idx + 1]
+                    try:
+                        return json.loads(snippet)
+                    except json.JSONDecodeError:
+                        return None
+        return None
+
+    for idx, ch in enumerate(text):
+        if ch == "{":
+            parsed = try_parse_substring(idx, "{", "}")
+            if parsed is not None:
+                return parsed
+        elif ch == "[":
+            parsed = try_parse_substring(idx, "[", "]")
+            if parsed is not None:
+                return parsed
+
+    match = re.search(r"\{.*?\}", text, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
         except json.JSONDecodeError:
-            return None
-    match = re.search(r"\[.*\]", text, re.DOTALL)
+            pass
+    match = re.search(r"\[.*?\]", text, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
         except json.JSONDecodeError:
-            return None
+            pass
     return None
 
 
