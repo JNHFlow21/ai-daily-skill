@@ -1,0 +1,45 @@
+name: Postmortem Precheck
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to check"
+        required: false
+      since:
+        description: "Start ref (commit or tag)"
+        required: false
+      until:
+        description: "End ref (commit or tag)"
+        required: false
+  release:
+    types: [created, prereleased]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run precheck
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL || 'deepseek-chat' }}
+          DEEPSEEK_API_BASE: ${{ secrets.DEEPSEEK_API_BASE || 'https://api.deepseek.com' }}
+        run: |
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          SINCE="${{ inputs.since }}"
+          UNTIL="${{ inputs.until }}"
+          if [ -n "$TAG" ]; then
+            python scripts/postmortem_precheck.py --tag "$TAG" --fail-on-trigger
+          elif [ -n "$SINCE" ] || [ -n "$UNTIL" ]; then
+            python scripts/postmortem_precheck.py --since "$SINCE" --until "${UNTIL:-HEAD}" --fail-on-trigger
+          else
+            python scripts/postmortem_precheck.py --until HEAD --fail-on-trigger
+          fi
